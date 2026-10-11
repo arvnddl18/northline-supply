@@ -18,11 +18,17 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="base64:7qjH5qKZb+r4+r39vVv5uGfF8yM2vYy1w7Vb4mK1tXg="/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <env name="SHOPIFY_API_KEY" value="test_client_id_123"/>
+        <env name="SHOPIFY_API_SECRET" value="test_client_secret_xyz"/>
+        <env name="SHOPIFY_SCOPES" value="write_products,read_products,write_orders,read_orders"/>
     </php>
 </phpunit>

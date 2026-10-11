@@ -47,6 +47,7 @@
 
 ## Critical Decisions
 - [[ADR_002_CHECKOUT_STRATEGY]] — Option B (Stripe-First Checkout via App Proxy) for custom app.
+- [[ADR_003_LARAVEL_DOCKER_STACK]] — Monolithic Laravel 11 in Docker Compose (web, worker, scheduler, postgres, redis).
 
 ## Active Problems
 - None active.
@@ -63,6 +64,12 @@
 - [[OVERVIEW]]
 - [[SYSTEM_ARCHITECTURE]]
 - [[FUNCTIONAL_REQUIREMENTS]]
+- [[CONVENTIONS]]
+- [[BACKLOG_RULES]]
 - [[CURRENT_STATE]]
 - [[DEVELOPMENT_KANBAN]]
+- [[CHECKOUT_CHOICE_EMMA_NOTE]]
 - [[STRIPE_AND_SHOPIFY_SETUP]]
+- [[UPTIME_KUMA_SETUP]]
+- [[S0_T6_MONITORING_AND_LOGGING]]
+

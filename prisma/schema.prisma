@@ -32,3 +32,18 @@ model Session {
   refreshToken        String?
   refreshTokenExpires DateTime?
 }
+
+model Shop {
+  id              String    @id @default(uuid())
+  shopifyDomain   String    @unique @map("shopify_domain")
+  accessToken     String?   @map("access_token")
+  stripeAccountId String?   @map("stripe_account_id")
+  currency        String    @default("AUD")
+  settings        String    @default("{}")
+  installedAt     DateTime? @map("installed_at")
+  uninstalledAt   DateTime? @map("uninstalled_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("shops")
+}

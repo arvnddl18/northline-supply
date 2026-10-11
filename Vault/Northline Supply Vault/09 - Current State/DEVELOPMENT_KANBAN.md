@@ -41,19 +41,12 @@ kanban-plugin: board
 
 ## Todo
 
-- [ ] **S0-T3**: Repository and Docker stack #p0-must #dev #sprint0 #1.0d
-- [ ] **S1-T1**: Core migrations #p0-must #dev #sprint1 #1.0d
-- [ ] **S1-T2**: Shopify install flow #p0-must #dev #sprint1 #1.5d
 - [ ] **S1-T3**: Embedded admin shell #p0-must #dev #sprint1 #1.5d
 - [ ] **S1-T4**: Stripe connection #p0-must #dev #sprint1 #1.0d
 - [ ] **S1-T5**: Plans API and screens #p0-must #dev #sprint1 #2.0d
 - [ ] **S1-T6**: Deposit calculation service #p0-must #dev #sprint1 #0.5d
 - [ ] **S1-T7**: Storefront widget #p0-must #dev #sprint1 #1.5d
 - [ ] **S1-T8**: Start checkout #p0-must #dev #sprint1 #1.0d
-- [ ] **S0-T4**: CI pipeline #p1-should #dev #sprint0 #1.0d
-- [ ] **S0-T5**: Staging deploy #p1-should #dev #sprint0 #1.0d
-- [ ] **S0-T7**: Backlog and rules #p1-should #decision #sprint0 #0.5d
-- [ ] **S0-T6**: Monitoring and logging #p2-could #dev #sprint0 #0.5d
 
 ## In Progress
 
@@ -67,6 +60,13 @@ kanban-plugin: board
 - [x] **INIT-01**: Ingest 12-page requirements & spec baseline (Agent) #p0-must #decision #sprint0 [[PRD]]
 - [x] **INIT-02**: Establish 10-page Sprint Plan v1.0 (50 dev days, 24 stories) (Agent) #p0-must #decision #sprint0 [[IMPLEMENTATION_PLAN]]
 - [x] **INIT-03**: Create Checkout Strategy Decision Record (Option B primary) (Agent) #p0-must #decision #sprint0 [[ADR_002_CHECKOUT_STRATEGY]]
+- [x] **S0-T3**: Repository and Docker stack #p0-must #dev #sprint0 #1.0d
+- [x] **S0-T4**: CI pipeline #p1-should #dev #sprint0 #1.0d
+- [x] **S0-T5**: Staging deploy #p1-should #dev #sprint0 #1.0d
+- [x] **S0-T6**: Monitoring and logging #p2-could #dev #sprint0 #0.5d
+- [x] **S0-T7**: Backlog and rules #p1-should #decision #sprint0 #0.5d
+- [x] **S1-T1**: Core migrations #p0-must #dev #sprint1 #1.0d
+- [x] **S1-T2**: Shopify install flow #p0-must #dev #sprint1 #1.5d
 
 %% kanban:settings
 ```

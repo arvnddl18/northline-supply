@@ -23,21 +23,72 @@
   - Stripe CLI v1.53.1 installed on host machine via winget.
   - `scripts/stripe-listen.ps1` and npm shortcuts (`npm run stripe:listen`, `npm run stripe:trigger`) established.
   - Complete runbook recorded in [[STRIPE_AND_SHOPIFY_SETUP]].
+- **S1-T1 Completed**: Core migrations & multi-tenant models:
+  - Multi-tenant `users` table with `shop_id` foreign key, `role` (`owner`/`staff`), and nullable authentication fields for embedded sessions.
+  - `plans` table storing configurations for deposits (percentage and fixed integer cents), installments, and subscriptions with `active` query scope.
+  - `plan_targets` table associating plans with Shopify product GIDs or collection GIDs with cascade delete.
+  - `customers` table mapping Shopify customers to Stripe customer profiles and default payment methods.
+  - Models: `Shop`, `User`, `Plan`, `PlanTarget`, `Customer` with mutual relationships.
+  - Verified against PostgreSQL 16 container with complete migration rollback and re-apply testing.
+  - 5 feature tests in `tests/Feature/CoreMigrationsTest.php` passing cleanly.
+  - Full documentation in [[S1_T1_CORE_MIGRATIONS]].
+- **S1-T2 Completed**: Shopify install flow & encrypted token storage:
+  - OAuth initiation endpoint (`/auth/install`) with domain validation and CSRF state nonce.
+  - OAuth callback (`/auth/callback`) with cryptographic HMAC validation and token exchange.
+  - `Shop` model with AES-256 access token encryption at rest via Eloquent's encrypted cast (NFR-3).
+  - `app/uninstalled` webhook receiver (`/webhooks/app/uninstalled`) with HMAC verification, token zeroing, and soft deactivation.
+  - Full automated feature tests in `tests/Feature/ShopifyInstallFlowTest.php` (10 passed, 21 assertions).
+  - Detailed documentation in [[S1_T2_SHOPIFY_INSTALL_FLOW]].
+
+- **S0-T5 Completed**: Staging deploy configuration & automated CI/CD pipeline:
+  - Containerized Caddy v2 reverse proxy (`docker/Caddyfile`) with automatic Let's Encrypt TLS and parameterized domain routing.
+  - Staging environment stack (`docker-compose.staging.yml`) orchestrating Caddy, Laravel 11, background worker, scheduler, PostgreSQL 16, and Redis 7.
+  - GitHub Actions CD workflow (`.github/workflows/deploy-staging.yml`) deploying automatically to Ubuntu VPS on merge to `main` via SSH.
+  - Automated post-deploy verification: zero-downtime container updates, `php artisan migrate --force`, cache warmup (`config:cache`, `route:cache`), queue restart (`queue:restart`), and healthcheck verification via `/up`.
+  - Staging deploy script (`scripts/deploy-staging.sh`) and Makefile targets (`make staging-up`, `make staging-down`, `make staging-deploy`).
+  - Full staging runbook documented in [[STAGING_DEPLOYMENT_RUNBOOK]].
+
+- **S0-T4 Completed**: Automated CI pipeline:
+  - GitHub Actions multi-job CI workflow (`.github/workflows/ci.yml`) triggered on push and pull requests to `main`.
+  - Frontend static verification: ESLint with custom ignore rules and TypeScript typechecking (`tsc --noEmit`).
+  - Backend automated testing: PHP 8.3 environment with extensions, composer dependency caching, and full PHPUnit test execution (`php artisan test`).
+  - Containerization & publication: Self-contained production Docker image build with buildx cache; pushes tagged images (`sha-<hash>` and `latest`) to GitHub Container Registry (`ghcr.io`) upon merge to `main`.
+  - Production Dockerfile packaging: application source bundled, directory permissions pre-configured, and optimized dependencies pre-installed (`--no-dev --optimize-autoloader`).
+- **S0-T7 Completed**: Backlog and rules:
+  - Definition of Done codified in repository pull request template (`.github/pull_request_template.md`).
+  - Developer and AI agent operating guidelines established in `AGENTS.md`.
+  - Client-facing checkout decision brief drafted for Emma Carter in [[CHECKOUT_CHOICE_EMMA_NOTE]], linked to [[ADR_002_CHECKOUT_STRATEGY]].
+  - Backlog operating rules codified in [[BACKLOG_RULES]] (WIP=1, column transitions, tag taxonomy, 5-stage scope cut hierarchy).
+  - Living board synchronized via `scripts/sync-kanban.js`.
+  - Full documentation in [[S0_T7_BACKLOG_AND_RULES]].
+- **S0-T6 Completed**: Monitoring and logging:
+  - Sentry error tracking integrated via `sentry/sentry-laravel` (`^4.29`) with strict PCI SAQ-A sanitization and header scrubbing in `config/sentry.php`.
+  - Structured logging configured with Monolog `JsonFormatter` for containerized `stderr` and `json` channels in staging/production (`config/logging.php`).
+  - `RequestCorrelationIdMiddleware` assigns shared `request_id` across response headers (`X-Request-ID`), Monolog context, and Sentry event tags.
+  - Comprehensive health check endpoint `/health` monitors Database PDO, Redis ping, and Redis queue backlog depth against configurable thresholds.
+  - Optional self-hosted Uptime Kuma compose stack (`docker-compose.monitoring.yml`) and runbook documented in [[UPTIME_KUMA_SETUP]].
+  - Full documentation in [[S0_T6_MONITORING_AND_LOGGING]].
+- **S0-T3 Completed**: Repository and Docker stack:
+  - Unified multi-stage Docker container (`northwind-payment-app:latest`) running PHP 8.3-FPM, Nginx, Supervisor, PECL Redis, and PostgreSQL client.
+  - 5-service Docker Compose topology (`app` on port 8000, `worker`, `scheduler`, `postgres` on 5432, `redis` on 6379).
+  - One-command startup via `Makefile` (`make setup`, `make up`, `make test`, `make migrate`) and cross-platform PowerShell runner (`scripts/stack.ps1`).
+  - Standard Laravel 11 root application structure established, with legacy Node template code safely archived to `legacy-node-scaffold/`.
+  - Live verified: `/health` returns HTTP 200 with Postgres, Redis, and Queue status green; automated test suite passes.
+  - Decision recorded in [[ADR_003_LARAVEL_DOCKER_STACK]]; completed work documented in [[S0_T3_REPOSITORY_DOCKER_STACK]].
 
 ## In Progress
-- **Sprint 0: Setup and decisions (Week 1, 5 developer days)**
-  - `S0-T3`: Repository and Docker stack (PostgreSQL, Redis, env files, make targets).
+- None.
 
 ## Blocked
 - None.
 
 ## Next Logical Tasks
-1. Complete `S0-T3`: Initialize Docker stack (PostgreSQL, Redis, service scaffolding, make targets).
-2. Complete `S0-T4` & `S0-T5`: GitHub Actions CI pipeline and VPS staging deploy with Caddy HTTPS.
+1. Transition to Sprint 1 execution (`S1-T1`: Core migrations, `S1-T3`: Embedded admin shell, `S1-T4`: Stripe connection).
 
 ## Development Kanban
 - Living board: [[DEVELOPMENT_KANBAN]] (synced from [[IMPLEMENTATION_PLAN]])
 - Pinned visual guide with priority hierarchy (`#p0-must`, `#p1-should`, `#p2-could`), work type indicators (`#decision` vs `#dev`), sprint roadmap, and balanced 22px column breathing room.
+- Live Sync: Automated reactive daemon (`npm run kanban:watch`) listening to `CURRENT_STATE.md` and `IMPLEMENTATION_PLAN.md` for live-speed updates without dependencies.
 
 ## Last Updated
-2026-10-11
+2026-10-12
