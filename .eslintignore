@@ -1,5 +1,9 @@
 node_modules
+vendor
 build
 public/build
 */*.yml
 .shopify
+Vault
+.agents
+
