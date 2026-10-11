@@ -1,0 +1,20 @@
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: northwind-uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "${KUMA_PORT:-3001}:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+    environment:
+      - UPTIME_KUMA_PORT=3001
+    networks:
+      - monitoring-net
+
+networks:
+  monitoring-net:
+    driver: bridge
+
+volumes:
+  uptime_kuma_data:
