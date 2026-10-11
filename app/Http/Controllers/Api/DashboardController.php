@@ -25,11 +25,15 @@ class DashboardController extends Controller
             ->where('status', Payment::STATUS_SUCCEEDED)
             ->sum('amount');
 
-        // Total pending balance due on active orders (excluding cancelled or fully paid)
+        // Total pending balance due on active orders (excluding cancelled, fully paid, or refunded)
         $pendingBalanceDue = (int) PaymentSchedule::whereHas('order', fn($q) => 
-                $q->where('shop_id', $shop->id)->whereNotIn('payment_status', [Order::STATUS_CANCELLED, Order::STATUS_PAID])
+                $q->where('shop_id', $shop->id)->whereNotIn('payment_status', [
+                    Order::STATUS_CANCELLED, 
+                    Order::STATUS_PAID,
+                    Order::STATUS_REFUNDED,
+                ])
             )
-            ->where('status', '!=', PaymentSchedule::STATUS_SUCCEEDED)
+            ->where('status', PaymentSchedule::STATUS_PENDING)
             ->sum('amount');
 
         // Upcoming scheduled charges

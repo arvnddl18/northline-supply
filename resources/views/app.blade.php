@@ -1422,16 +1422,21 @@
                             tr.style.borderBottom = '1px solid var(--p-color-border)';
 
                             var detailsStr = '';
-                            if (l.details) {
+                            var metaObj = l.meta || l.details;
+                            if (metaObj) {
                                 try {
-                                    detailsStr = typeof l.details === 'object' ? JSON.stringify(l.details) : l.details;
-                                } catch(e) { detailsStr = String(l.details); }
+                                    detailsStr = typeof metaObj === 'object' ? JSON.stringify(metaObj) : metaObj;
+                                } catch(e) { detailsStr = String(metaObj); }
                             }
+
+                            var targetTypeStr = l.target_type || l.resource_type || 'Record';
+                            var targetName = targetTypeStr.split('\\').pop();
+                            var targetId = l.target_id || l.resource_id || '';
 
                             tr.innerHTML = `
                                 <td style="padding: 10px 12px; font-family: monospace; font-size: 12px; color: var(--p-color-text-subdued);">${l.created_at || '—'}</td>
                                 <td style="padding: 10px 12px;"><strong>${l.action}</strong></td>
-                                <td style="padding: 10px 12px;"><span class="badge badge-info">${l.resource_type || ''} #${l.resource_id || ''}</span></td>
+                                <td style="padding: 10px 12px;"><span class="badge badge-info">${targetName} #${targetId}</span></td>
                                 <td style="padding: 10px 12px; font-size: 13px;">${l.user ? l.user.name : (l.ip_address || 'System')}</td>
                                 <td style="padding: 10px 12px; font-family: monospace; font-size: 12px; color: var(--p-color-text-subdued); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${detailsStr}</td>
                             `;

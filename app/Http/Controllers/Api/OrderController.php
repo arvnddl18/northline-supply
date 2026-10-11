@@ -203,6 +203,26 @@ class OrderController extends Controller
             return response()->json(['error' => 'No succeeded payment found for order to refund.'], 422);
         }
 
+        $paymentRefunded = (int) $payment->refunds()->sum('amount');
+        $paymentRemaining = $payment->amount - $paymentRefunded;
+        if ($amount > $paymentRemaining && empty($validated['payment_id'])) {
+            $sufficientPayment = $order->payments()
+                ->where('status', \App\Models\Payment::STATUS_SUCCEEDED)
+                ->get()
+                ->first(fn($p) => ($p->amount - (int) $p->refunds()->sum('amount')) >= $amount);
+
+            if ($sufficientPayment) {
+                $payment = $sufficientPayment;
+                $paymentRemaining = $payment->amount - (int) $payment->refunds()->sum('amount');
+            }
+        }
+
+        if ($amount > $paymentRemaining) {
+            return response()->json([
+                'error' => "Requested refund amount ({$amount}) exceeds remaining refundable balance ({$paymentRemaining}) on Payment #{$payment->id}.",
+            ], 422);
+        }
+
         $stripeKey = $shop->getStripeSecretKey();
         if (empty($stripeKey)) {
             return response()->json(['error' => 'Stripe secret key not configured for shop.'], 409);

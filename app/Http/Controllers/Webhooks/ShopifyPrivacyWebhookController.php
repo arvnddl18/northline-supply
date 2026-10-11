@@ -102,7 +102,13 @@ class ShopifyPrivacyWebhookController extends Controller
         if ($shop && !empty($shopifyCustomerId)) {
             // Anonymize customer PII while preserving financial orders/transactions for accounting integrity
             $customer = $shop->customers()
-                ->where('shopify_customer_id', $shopifyCustomerId)
+                ->where(function ($q) use ($shopifyCustomerId, $payload) {
+                    $q->where('shopify_customer_id', $shopifyCustomerId)
+                      ->orWhere('shopify_customer_id', "gid://shopify/Customer/{$shopifyCustomerId}");
+                    if (!empty($payload['customer']['email'])) {
+                        $q->orWhere('email', $payload['customer']['email']);
+                    }
+                })
                 ->first();
 
             if ($customer) {
@@ -162,6 +168,8 @@ class ShopifyPrivacyWebhookController extends Controller
             $shop->update([
                 'access_token' => 'redacted_' . bin2hex(random_bytes(16)),
                 'stripe_account_id' => null,
+                'stripe_publishable_key' => null,
+                'stripe_secret_key' => null,
                 'uninstalled_at' => $shop->uninstalled_at ?? now(),
             ]);
 
