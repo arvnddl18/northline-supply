@@ -1,0 +1,160 @@
+/* ==========================================================================
+   Northline Supply — Obsidian Kanban Sticky Notes Theme
+   ========================================================================== */
+
+/* Pinboard / Corkboard Canvas Background */
+.kanban-plugin__board {
+  padding: 20px;
+  gap: 20px;
+  background-color: #f6f3eb;
+  background-image: radial-gradient(#dfd9cb 1.2px, transparent 1.2px);
+  background-size: 18px 18px;
+  min-height: 100vh;
+}
+
+/* Dark mode adjustment for board background */
+.theme-dark .kanban-plugin__board {
+  background-color: #1a1a22;
+  background-image: radial-gradient(#2d2d3a 1.2px, transparent 1.2px);
+}
+
+/* Lane / Column Boards (Frosted Bulletin Frames) */
+.kanban-plugin__lane {
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  overflow: visible;
+}
+
+.theme-dark .kanban-plugin__lane {
+  background-color: rgba(28, 28, 36, 0.8);
+  border-color: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* Lane Headers */
+.kanban-plugin__lane-header-wrapper {
+  padding: 12px 16px 8px 16px;
+}
+
+.kanban-plugin__lane-title-text {
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-normal);
+}
+
+/* Column Header Accent Lines */
+.kanban-plugin__lane:nth-child(1) { border-top: 4px solid #a855f7; }
+.kanban-plugin__lane:nth-child(2) { border-top: 4px solid #3b82f6; }
+.kanban-plugin__lane:nth-child(3) { border-top: 4px solid #f59e0b; }
+.kanban-plugin__lane:nth-child(4) { border-top: 4px solid #10b981; }
+
+/* Sticky Note Cards */
+.kanban-plugin__item {
+  position: relative;
+  border-radius: 2px 2px 8px 8px;
+  margin: 10px 12px 14px 12px;
+  padding: 14px 14px 12px 14px;
+  border: none;
+  border-top: 4px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 2px 5px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: transform 0.18s cubic-bezier(0.2, 0, 0.2, 1), box-shadow 0.18s ease;
+  font-family: var(--font-text);
+  color: #1e293b;
+}
+
+/* Subtle organic sticky note angles for authentic feel */
+.kanban-plugin__item:nth-child(odd) {
+  transform: rotate(-0.6deg);
+}
+.kanban-plugin__item:nth-child(even) {
+  transform: rotate(0.6deg);
+}
+
+/* Hover Lift Effect */
+.kanban-plugin__item:hover {
+  transform: rotate(0deg) scale(1.02) translateY(-3px);
+  box-shadow: 4px 12px 22px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+}
+
+/* --- Sticky Note Colors per Column --- */
+
+/* Backlog: Soft Pastel Lavender Note */
+.kanban-plugin__lane:nth-child(1) .kanban-plugin__item {
+  background: linear-gradient(180deg, #fbf7ff 0%, #f3e8ff 100%);
+  border-top-color: #d8b4fe;
+}
+
+/* Todo: Classic Sunny Pastel Yellow Note */
+.kanban-plugin__lane:nth-child(2) .kanban-plugin__item {
+  background: linear-gradient(180deg, #fffbeb 0%, #fef08a 100%);
+  border-top-color: #fde047;
+}
+
+/* In Progress: Warm Peach / Tangerine Note */
+.kanban-plugin__lane:nth-child(3) .kanban-plugin__item {
+  background: linear-gradient(180deg, #fff7ed 0%, #fed7aa 100%);
+  border-top-color: #fdba74;
+}
+
+/* Done: Fresh Mint Green Note */
+.kanban-plugin__lane:nth-child(4) .kanban-plugin__item {
+  background: linear-gradient(180deg, #f0fdf4 0%, #bbf7d0 100%);
+  border-top-color: #86efac;
+  opacity: 0.94;
+}
+
+/* Ensure dark mode text on light sticky notes is clear & readable */
+.theme-dark .kanban-plugin__item {
+  color: #0f172a;
+}
+.theme-dark .kanban-plugin__item-title {
+  color: #1e293b !important;
+}
+
+/* Card Text */
+.kanban-plugin__item-title {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #1e293b !important;
+  font-weight: 500;
+}
+
+/* Checkbox inside sticky note */
+.kanban-plugin__item input[type="checkbox"] {
+  accent-color: #4f46e5;
+  cursor: pointer;
+}
+
+/* Spec links & Tag badges inside Sticky Notes */
+.kanban-plugin__item a.internal-link {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: rgba(0, 0, 0, 0.07);
+  color: #334155 !important;
+  padding: 2px 7px;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.kanban-plugin__item a.internal-link:hover {
+  background-color: rgba(0, 0, 0, 0.14);
+}
+
+.kanban-plugin__item-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 2px 8px;
+  margin: 4px 4px 2px 0;
+  display: inline-block;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}

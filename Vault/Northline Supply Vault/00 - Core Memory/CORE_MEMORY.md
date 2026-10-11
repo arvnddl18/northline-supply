@@ -1,42 +1,52 @@
 # Core Memory
 
 ## Project
-- **Name**: Northline Supply
-- **Purpose**: Shopify Embedded Application for Northline Supply merchant workflows and catalog management.
-- **Current objective**: Initial application baseline and memory brain initialization.
+- **Name**: Northwind Ceramics Payment App
+- **Client**: Emma Carter, Northwind Ceramics (Melbourne, Australia)
+- **Purpose**: Custom Shopify payment app integrating Stripe to collect pre-order deposits, automated scheduled balance payments, installment plans, and recurring Ceramic Club subscriptions for handmade made-to-order ceramics.
+- **Current objective**: Sprint 0 environment setup, checkout strategy validation, and living specifications baseline.
 
 ## Current State
-- **Active feature**: Template embedded app routes (`app._index.jsx`, `app.additional.jsx`).
-- **Current development phase**: Foundation & Architecture Setup.
+- **Active feature**: Specification and living memory architecture alignment.
+- **Current development phase**: Sprint 0 (Setup, Decisions, and Environments).
 - **Important blockers**: None.
 
 ## Technology
-- **Frontend**: React 18, React Router 7 (`@shopify/shopify-app-react-router`), Shopify Polaris (`@shopify/polaris-types`), Vite.
-- **Backend**: Node.js, React Router server adapter (`@react-router/serve`), Shopify Admin GraphQL API (2027-01 webhook subscriptions).
-- **Database**: SQLite via Prisma ORM (`@prisma/client`, `prisma`).
-- **Infrastructure**: Embedded Shopify Admin app, Vite bundler, local dev tunnel via Shopify CLI (`shopify app dev`).
+- **Backend**: Laravel 11, PHP 8.3 (REST API, Webhook handlers, Queue workers, Scheduler for due charges).
+- **Admin Frontend**: React with Shopify Polaris, App Bridge (Embedded Admin inside Shopify).
+- **Storefront**: Shopify Theme App Extension (PDP & Cart deposit/installment widget).
+- **Customer Portal**: Passwordless magic link / Shopify Customer Account integration with Stripe-hosted Elements.
+- **Database**: PostgreSQL (Amounts stored as whole numbers in smallest currency unit / cents).
+- **Cache & Queues**: Redis (queues, worker supervisor, distributed concurrency locks).
+- **Payments**: Stripe (PaymentIntents, SetupIntents, Checkout, Billing/Subscriptions).
+- **Transactional Mail**: Postmark or Amazon SES.
+- **Infrastructure & Monitoring**: Docker, GitHub Actions CI/CD, VPS, Sentry error tracking, Uptime Kuma.
 
 ## Architecture
 - **Key architectural decisions**:
-  - Embedded Shopify Admin architecture with App Bridge React.
-  - Prisma SQLite session storage (`@shopify/shopify-app-session-storage-prisma`).
-  - Mandatory Shopify AI Toolkit usage for platform and API work per repo rules.
+  - [[ADR_001_SHOPIFY_REACT_ROUTER_EMBEDDED_STACK]] (Historical template baseline)
+  - [[ADR_002_CHECKOUT_STRATEGY]]: Option B Stripe-first checkout via Shopify App Proxy as primary architecture; Option A deposit variant as fallback.
+  - Multi-tenant data isolation with `shop_id` scoping on all data models.
+  - Sub-second webhook ingestion (save raw payload to `webhook_events`, respond 200, process in queue).
+  - Redis distributed locks on schedule rows to prevent duplicate charges.
 - **Important modules**:
-  - `app/routes`: React Router application routes and embedded Shopify entry points.
-  - `prisma/schema.prisma`: Session storage and persistent database entities.
-  - `shopify.app.toml`: App configuration, access scopes (`write_products,write_metaobjects,write_metaobject_definitions`), and webhook subscriptions.
+  - `app/Http/Controllers/Api`: REST API for Admin dashboard and portal.
+  - `app/Http/Controllers/Webhooks`: Shopify and Stripe webhook handlers.
+  - `app/Jobs`: Async background queue jobs for order sync, retries, and emails.
+  - `app/Console/Commands`: Scheduler checking due balances and retry dates.
+  - `theme-extension`: Storefront widget (< 30 KB JS, < 100 ms render).
 
 ## Permanent Constraints
-- **Authority**: Repository code is always authoritative over memory notes. Obsidian records intent, history, and learnings; code records current reality.
-- **Security & Privacy**: Never store secrets, tokens, credentials, or private keys in Obsidian or commit history.
-- **Tooling Rule**: Use Shopify AI Toolkit for Shopify API and platform work; do not add ad-hoc tooling to this repo.
+- **Authority**: Repository code is authoritative for current reality; Obsidian records intent, requirements, architecture, and learnings.
+- **Security & Privacy**: Zero raw card data storage on server (PCI SAQ-A scope). Encrypt tokens/keys at rest (AES-256). Verify all webhook HMAC/signatures. No secrets in Obsidian.
+- **Business Scope**: Taxes and shipping are left to Shopify; the app never recalculates them. Multi-currency (AUD, USD, GBP, EUR) strictly follows Shopify order currency.
 
 ## Important User Preferences
-- **Execution Style**: Ponytail principles — minimal complete diffs, no unnecessary abstractions, concise reporting.
-- **Memory Protocol**: Silent extraction, progressive refinement, targeted token-efficient recall, no verbatim chat dumps.
+- **Execution Style**: Ponytail principles — minimal complete changes, clean diffs, no superfluous abstractions, concise reporting.
+- **Memory Protocol**: Autonomous progressive refinement, stable cross-linked living specs (`[[Link]]`), token-optimized recall.
 
 ## Critical Decisions
-- [[ADR_001_SHOPIFY_REACT_ROUTER_EMBEDDED_STACK]]
+- [[ADR_002_CHECKOUT_STRATEGY]] — Option B (Stripe-First Checkout via App Proxy) for custom app.
 
 ## Active Problems
 - None active.
@@ -51,4 +61,7 @@
 
 ## Important Memory References
 - [[OVERVIEW]]
+- [[SYSTEM_ARCHITECTURE]]
+- [[FUNCTIONAL_REQUIREMENTS]]
 - [[CURRENT_STATE]]
+- [[DEVELOPMENT_KANBAN]]

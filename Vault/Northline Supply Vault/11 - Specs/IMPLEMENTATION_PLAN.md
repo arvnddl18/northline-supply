@@ -22,7 +22,13 @@ related: [[PRD]], [[TRD]]
 |----|------|-------|-----------|-------|-------------|--------|
 | T-001 | Initialize Obsidian Memory Brain & Spec Layer | Phase 1 | - | Agent | [[PRD#F-001]] | Done |
 | T-002 | Verify local dev server and Prisma migrations | Phase 1 | T-001 | Dev | [[TRD#1-Tech-Stack]] | Done |
-| T-003 | Define Northline Supply core feature requirements | Phase 2 | T-001 | User/Dev | [[PRD#4-Features]] | In Progress |
+| T-003 | Configure Playwright MCP & Agent Automation | Phase 1 | T-001 | Dev/Agent | [[TRD#1-Tech-Stack]] | Done |
+| T-004 | Define Northline Supply core feature requirements | Phase 2 | T-001 | User/Dev | [[PRD#4-Features]] | In Progress |
+| T-005 | Implement Product Catalog & Metaobject synchronization | Phase 2 | T-004 | Dev | [[PRD#F-002]] | Todo |
+| T-006 | Build Merchant Supply Dashboard with Polaris & App Bridge | Phase 2 | T-005 | Dev | [[PRD#US-001]] | Todo |
+| T-007 | Implement Webhook Ingestion & Error Boundaries | Phase 2 | T-005 | Dev | [[PRD#F-003]] | Todo |
+| T-008 | Add Playwright E2E automation journeys for merchant flows | Phase 3 | T-006 | QA/Dev | [[TRD#1-Tech-Stack]] | Backlog |
+| T-009 | Production database migration & App Store compliance | Phase 3 | T-007 | DevOps | [[TRD#3-Infrastructure]] | Backlog |
 
 ## 3. Milestones
 - M1: Project and Memory Brain initialization complete (Current).

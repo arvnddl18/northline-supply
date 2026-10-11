@@ -15,5 +15,8 @@
 - Detail specific supply and inventory management workflows into PRD.
 - Create merchant-facing feature components.
 
+## Development Kanban
+- Living board: [[DEVELOPMENT_KANBAN]] (synced from [[IMPLEMENTATION_PLAN]])
+
 ## Last Updated
 2026-10-11

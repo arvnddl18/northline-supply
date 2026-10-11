@@ -1,0 +1,209 @@
+{
+  "main": {
+    "id": "f6a753d06c08739a",
+    "type": "split",
+    "children": [
+      {
+        "id": "b8b6dddb101784ac",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f383fabb8e378136",
+            "type": "leaf",
+            "state": {
+              "type": "kanban",
+              "state": {
+                "file": "09 - Current State/DEVELOPMENT_KANBAN.md",
+                "kanbanViewState": {
+                  "kanban-plugin": "board",
+                  "list-collapse": [
+                    null,
+                    false,
+                    false,
+                    null
+                  ]
+                }
+              },
+              "icon": "lucide-trello",
+              "title": "DEVELOPMENT_KANBAN"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "ea1d1d0af7285c36",
+    "type": "split",
+    "children": [
+      {
+        "id": "7f6cd5e73b0cc9de",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8bbfce88a9306ec6",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "47d815385735cd1d",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "7518c97209340724",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200,
+    "collapsed": true
+  },
+  "right": {
+    "id": "18b6b6b96ccb9468",
+    "type": "split",
+    "children": [
+      {
+        "id": "3fbce428bbe9035d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "28d11cfec202ac0e",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "09 - Current State/DEVELOPMENT_KANBAN.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "335d4d25b5c1ee20",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "09 - Current State/DEVELOPMENT_KANBAN.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "7b36bc62c4d47436",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "025c62271d9f7320",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "f028db1edbf06eda",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "09 - Current State/DEVELOPMENT_KANBAN.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "obsidian-kanban:Create new board": false
+    }
+  },
+  "active": "f383fabb8e378136",
+  "lastOpenFiles": [
+    "03 - Decisions/ADR_002_CHECKOUT_STRATEGY.md",
+    "09 - Current State/DEVELOPMENT_KANBAN.md",
+    "09 - Current State/CURRENT_STATE.md",
+    "00 - Core Memory/CORE_MEMORY.md",
+    "2026-10-11.md",
+    "Untitled.canvas"
+  ]
+}
