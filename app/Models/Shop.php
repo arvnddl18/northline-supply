@@ -73,4 +73,28 @@ class Shop extends Model
             'uninstalled_at' => null,
         ]);
     }
+
+    /**
+     * Users belonging to this shop.
+     */
+    public function users(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
+    /**
+     * Payment plans defined for this shop.
+     */
+    public function plans(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Plan::class);
+    }
+
+    /**
+     * Customers associated with this shop.
+     */
+    public function customers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Customer::class);
+    }
 }

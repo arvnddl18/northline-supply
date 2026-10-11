@@ -16,9 +16,11 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'shop_id',
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -42,5 +44,29 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Shop this user belongs to.
+     */
+    public function shop(): \Illuminate\Database\Eloquent\Relations\belongsTo
+    {
+        return $this->belongsTo(Shop::class);
+    }
+
+    /**
+     * Determine if the user has owner privileges (full access).
+     */
+    public function isOwner(): bool
+    {
+        return $this->role === 'owner';
+    }
+
+    /**
+     * Determine if the user has staff privileges (restricted access).
+     */
+    public function isStaff(): bool
+    {
+        return $this->role === 'staff';
     }
 }
