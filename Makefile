@@ -1,4 +1,4 @@
-.PHONY: help setup build up down restart logs migrate test shell tinker clean staging-up staging-down staging-logs staging-deploy
+.PHONY: help build up down restart logs migrate test shell tinker clean
 
 help: ## Show this help message
 	@echo "Usage: make [target]"
@@ -6,58 +6,31 @@ help: ## Show this help message
 	@echo "Targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-setup: ## First-time setup: copies .env, builds images, starts containers, installs dependencies, runs migrations
-	@if [ ! -f .env ]; then cp .env.example .env; echo "Created .env from .env.example"; fi
-	docker compose build
-	docker compose up -d
-	docker compose exec app composer install --no-interaction --prefer-dist --optimize-autoloader
-	docker compose exec app php artisan key:generate --force
-	docker compose exec app php artisan migrate --force
-	@echo "Setup complete! Application running at http://localhost:8000"
+build: ## Build Docker application image
+	docker build -t northwind-payment-app:latest .
 
-build: ## Build or rebuild Docker images
-	docker compose build
+up: ## Start containers in background using pure Docker
+	@powershell -ExecutionPolicy Bypass -File scripts/stack.ps1 up
 
-up: ## Start containers in the background
-	docker compose up -d
+down: ## Stop and remove containers
+	@powershell -ExecutionPolicy Bypass -File scripts/stack.ps1 down
 
-down: ## Stop and remove containers, networks
-	docker compose down
+restart: down up ## Restart containers
 
-restart: down up ## Restart all containers
-
-logs: ## Follow logs from all containers
-	docker compose logs -f
+logs: ## Tail web container logs
+	docker logs -f northwind-payment-web
 
 migrate: ## Run database migrations
-	docker compose exec app php artisan migrate
+	docker exec -it northwind-payment-web php artisan migrate
 
-test: ## Run automated PHPUnit tests
-	docker compose exec app php artisan test
+test: ## Run automated PHPUnit tests inside container
+	docker exec -it northwind-payment-web php artisan test
 
-shell: ## Open a shell inside the app container
-	docker compose exec app sh
+shell: ## Open shell inside app container
+	docker exec -it northwind-payment-web sh
 
-tinker: ## Open Laravel Tinker interactive shell
-	docker compose exec app php artisan tinker
+tinker: ## Open Laravel Tinker shell
+	docker exec -it northwind-payment-web php artisan tinker
 
-clean: ## Stop containers and remove volumes
-	docker compose down -v
-
-staging-up: ## Start staging containers in the background with Caddy HTTPS
-	docker compose -f docker-compose.staging.yml up -d
-
-staging-down: ## Stop staging containers
-	docker compose -f docker-compose.staging.yml down
-
-staging-logs: ## Follow logs from all staging containers
-	docker compose -f docker-compose.staging.yml logs -f
-
-staging-deploy: ## Run local or VPS staging deployment script
-	bash scripts/deploy-staging.sh
-
-monitoring-up: ## Start optional self-hosted Uptime Kuma monitoring container
-	docker compose -f docker-compose.monitoring.yml up -d
-
-monitoring-down: ## Stop self-hosted Uptime Kuma monitoring container
-	docker compose -f docker-compose.monitoring.yml down
+clean: down ## Stop containers and clean data volumes
+	@powershell -ExecutionPolicy Bypass -File scripts/stack.ps1 clean

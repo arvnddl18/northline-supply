@@ -51,6 +51,12 @@ class VerifyShopifySessionToken
         $request->attributes->set('shop', $shop);
         $request->attributes->set('shopify_session', $payload);
 
+        $user = $shop->users()->first();
+        if ($user) {
+            $request->attributes->set('user', $user);
+            $request->attributes->set('user_id', $user->id);
+        }
+
         return $next($request);
     }
 }

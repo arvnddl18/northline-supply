@@ -16,7 +16,7 @@ class AdminOverviewController extends Controller
         $shop = $request->attributes->get('shop');
 
         $plansCount = $shop->plans()->count();
-        $isStripeConnected = !empty($shop->stripe_account_id);
+        $isStripeConnected = $shop->isStripeConnected();
 
         return response()->json([
             'shop' => [

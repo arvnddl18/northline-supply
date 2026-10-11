@@ -11,45 +11,17 @@ kanban-plugin: board
 
 ## Backlog
 
-- [ ] **S2-T1**: Order and payment migrations #p0-must #dev #sprint2 #1.0d
-- [ ] **S2-T2**: Webhook receivers #p0-must #dev #sprint2 #1.5d
-- [ ] **S2-T3**: Event jobs #p0-must #dev #sprint2 #2.0d
-- [ ] **S2-T4**: Status writeback #p0-must #dev #sprint2 #1.0d
-- [ ] **S2-T5**: Balance payment link #p0-must #dev #sprint2 #1.5d
-- [ ] **S3-T1**: Dashboard #p0-must #dev #sprint3 #1.5d
-- [ ] **S3-T2**: Order list filters #p0-must #dev #sprint3 #0.5d
-- [ ] **S3-T4**: Privacy webhooks #p0-must #dev #sprint3 #1.0d
-- [ ] **S5-T6**: Hardening #p0-must #dev #sprint5 #1.5d
 - [ ] **S5-T7**: Docs and handover #p0-must #dev #sprint5 #1.0d
-- [ ] **S2-T6**: Scheduler and reminders #p1-should #dev #sprint2 #1.5d
-- [ ] **S2-T7**: Email service and templates #p1-should #dev #sprint2 #1.5d
-- [ ] **S3-T3**: Refund flow #p1-should #dev #sprint3 #1.0d
-- [ ] **S3-T5**: Audit log #p1-should #dev #sprint3 #0.5d
-- [ ] **S3-T6**: Demo prep #p1-should #dev #sprint3 #0.5d
-- [ ] **S4-T1**: Installment plan setup #p1-should #dev #sprint4 #2.0d
-- [ ] **S4-T2**: Plan selector in widget #p1-should #dev #sprint4 #1.0d
-- [ ] **S4-T3**: Automatic charges #p1-should #dev #sprint4 #2.0d
 - [ ] **S4-T4**: Retry logic #p1-should #dev #sprint4 #1.5d
-- [ ] **S4-T5**: Card update page #p1-should #dev #sprint4 #1.5d
-- [ ] **S4-T6**: Dispute alerts #p1-should #dev #sprint4 #1.0d
-- [ ] **S4-T7**: End-to-end tests #p1-should #dev #sprint4 #1.0d
-- [ ] **S5-T1**: Subscription model #p1-should #dev #sprint5 #2.5d
 - [ ] **S5-T2**: Pause, skip, cancel, proration #p1-should #dev #sprint5 #1.5d
-- [ ] **S5-T3**: Customer portal #p1-should #dev #sprint5 #2.0d
-- [ ] **S5-T4**: Staff role #p1-should #dev #sprint5 #1.0d
-- [ ] **S5-T5**: CSV export #p1-should #dev #sprint5 #0.5d
 
 ## Todo
 
-- [ ] **S1-T4**: Stripe connection #p0-must #dev #sprint1 #1.0d
-- [ ] **S1-T5**: Plans API and screens #p0-must #dev #sprint1 #2.0d
-- [ ] **S1-T6**: Deposit calculation service #p0-must #dev #sprint1 #0.5d
-- [ ] **S1-T7**: Storefront widget #p0-must #dev #sprint1 #1.5d
-- [ ] **S1-T8**: Start checkout #p0-must #dev #sprint1 #1.0d
+
 
 ## In Progress
 
-- [ ] **S1-T3**: Embedded admin shell #p0-must #dev #sprint1 #1.5d
+
 
 ## Done
 
@@ -66,6 +38,36 @@ kanban-plugin: board
 - [x] **S0-T7**: Backlog and rules #p1-should #decision #sprint0 #0.5d
 - [x] **S1-T1**: Core migrations #p0-must #dev #sprint1 #1.0d
 - [x] **S1-T2**: Shopify install flow #p0-must #dev #sprint1 #1.5d
+- [x] **S1-T3**: Embedded admin shell #p0-must #dev #sprint1 #1.5d
+- [x] **S1-T4**: Stripe connection #p0-must #dev #sprint1 #1.0d
+- [x] **S1-T5**: Plans API and screens #p0-must #dev #sprint1 #2.0d
+- [x] **S1-T6**: Deposit calculation service #p0-must #dev #sprint1 #0.5d
+- [x] **S1-T7**: Storefront widget #p0-must #dev #sprint1 #1.5d
+- [x] **S1-T8**: Start checkout #p0-must #dev #sprint1 #1.0d
+- [x] **S2-T1**: Order and payment migrations #p0-must #dev #sprint2 #1.0d
+- [x] **S2-T2**: Webhook receivers #p0-must #dev #sprint2 #1.5d
+- [x] **S2-T3**: Event jobs #p0-must #dev #sprint2 #2.0d
+- [x] **S2-T4**: Status writeback #p0-must #dev #sprint2 #1.0d
+- [x] **S2-T5**: Balance payment link #p0-must #dev #sprint2 #1.5d
+- [x] **S2-T6**: Scheduler and reminders #p1-should #dev #sprint2 #1.5d
+- [x] **S2-T7**: Email service and templates #p1-should #dev #sprint2 #1.5d
+- [x] **S3-T1**: Dashboard #p0-must #dev #sprint3 #1.5d
+- [x] **S3-T2**: Order list filters #p0-must #dev #sprint3 #0.5d
+- [x] **S3-T3**: Refund flow #p1-should #dev #sprint3 #1.0d
+- [x] **S3-T4**: Privacy webhooks #p0-must #dev #sprint3 #1.0d
+- [x] **S3-T5**: Audit log #p1-should #dev #sprint3 #0.5d
+- [x] **S3-T6**: Demo prep #p1-should #dev #sprint3 #0.5d
+- [x] **S4-T1**: Installment plan setup #p1-should #dev #sprint4 #2.0d
+- [x] **S4-T2**: Plan selector in widget #p1-should #dev #sprint4 #1.0d
+- [x] **S4-T3**: Automatic charges #p1-should #dev #sprint4 #2.0d
+- [x] **S4-T5**: Card update page #p1-should #dev #sprint4 #1.5d
+- [x] **S4-T6**: Dispute alerts #p1-should #dev #sprint4 #1.0d
+- [x] **S4-T7**: End-to-end tests #p1-should #dev #sprint4 #1.0d
+- [x] **S5-T1**: Subscription model #p1-should #dev #sprint5 #2.5d
+- [x] **S5-T3**: Customer portal #p1-should #dev #sprint5 #2.0d
+- [x] **S5-T4**: Staff role #p1-should #dev #sprint5 #1.0d
+- [x] **S5-T5**: CSV export #p1-should #dev #sprint5 #0.5d
+- [x] **S5-T6**: Hardening #p0-must #dev #sprint5 #1.5d
 
 %% kanban:settings
 ```

@@ -68,31 +68,113 @@
   - Comprehensive health check endpoint `/health` monitors Database PDO, Redis ping, and Redis queue backlog depth against configurable thresholds.
   - Optional self-hosted Uptime Kuma compose stack (`docker-compose.monitoring.yml`) and runbook documented in [[UPTIME_KUMA_SETUP]].
   - Full documentation in [[S0_T6_MONITORING_AND_LOGGING]].
-- **S0-T3 Completed**: Repository and Docker stack:
-  - Unified multi-stage Docker container (`northwind-payment-app:latest`) running PHP 8.3-FPM, Nginx, Supervisor, PECL Redis, and PostgreSQL client.
-  - 5-service Docker Compose topology (`app` on port 8000, `worker`, `scheduler`, `postgres` on 5432, `redis` on 6379).
-  - One-command startup via `Makefile` (`make setup`, `make up`, `make test`, `make migrate`) and cross-platform PowerShell runner (`scripts/stack.ps1`).
-  - Standard Laravel 11 root application structure established, with legacy Node template code safely archived to `legacy-node-scaffold/`.
-  - Live verified: `/health` returns HTTP 200 with Postgres, Redis, and Queue status green; automated test suite passes.
-  - Decision recorded in [[ADR_003_LARAVEL_DOCKER_STACK]]; completed work documented in [[S0_T3_REPOSITORY_DOCKER_STACK]].
+- **S0-T3 Streamlined & Rebuilt**: Repository and Docker stack optimization:
+  - Dockerfile restructured: build-time dependencies (`$PHPIZE_DEPS`, `linux-headers`, `postgresql-dev`, `libzip-dev`) consolidated into temporary `.build-deps` and completely purged in the same layer.
+  - Image size reduced dramatically from **1.45 GB** down to **71.1 MB** content size (300 MB disk footprint).
+  - Clean layer caching: `composer.json` and `composer.lock` cached before source copy.
+  - `.dockerignore` and `.eslintignore` updated to rigorously exclude `Northline Supply Vault`, `legacy-node-scaffold`, and `.gemini`.
+  - CI/CD aligned (`.github/workflows/ci.yml` and `.github/workflows/deploy-staging.yml`):
+    - Added PCI SAQ-A & secret scan step.
+    - Added standalone container health smoke test (`/health`).
+    - Staging deploy health check aligned to `/health`.
+    - Roadmap placeholders created for upcoming Sprint deliverables (Theme App Extension bundle budget, Stripe webhook idempotency suite, App Proxy contract tests, Sentry release notification).
+  - **Docker Compose Removal**: Removed `docker-compose.yml`, `docker-compose.staging.yml`, and `docker-compose.monitoring.yml`. All local scripts (`scripts/stack.ps1`, `package.json`, `Makefile`, and staging deploy) migrated to pure Docker commands (`docker run`, `docker exec`, `docker stop`, `docker rm`).
+
+
+- **S1-T3 Completed**: Embedded admin shell & session token verification:
+  - Polaris-aligned merchant dashboard in `resources/views/app.blade.php` with native `<ui-nav-menu>` sidebar integration.
+  - Shopify App Bridge v4 integration with mobile-optimized layout (touch targets > 44px, NFR-17).
+  - Dynamic `ShopifyIframeMiddleware` enforcing `frame-ancestors https://admin.shopify.com https://{shop};` and stripping `X-Frame-Options`.
+  - Cryptographic session token JWT verification in `ShopifyOAuthService::verifySessionToken` using PHP standard library HMAC-SHA256.
+  - `VerifyShopifySessionToken` middleware securing `/api/*` merchant endpoints.
+  - Merchant overview API (`/api/overview`) returning real-time onboarding checklist.
+  - 9 feature tests in `tests/Feature/EmbeddedAdminShellTest.php` passing cleanly (28 tests total).
+  - Pure Docker orchestration established in `scripts/stack.ps1` (`npm run stack:up`, `npm run stack:test`).
+  - Full documentation in [[S1_T3_EMBEDDED_ADMIN_SHELL]] and [[ADR_005_EMBEDDED_ADMIN_SHELL_ARCHITECTURE]].
+
+- **S1-T4 Completed**: Stripe connection UI & encrypted API keys setup:
+  - Migration `2026_10_12_000005_add_stripe_keys_to_shops_table.php` with encrypted columns.
+  - `Shop` model with Eloquent AES-256 encrypted casts and `$hidden` serialization protection.
+  - `StripeConnectService` verifying credentials via live Stripe `/v1/account` ping with native HTTP client.
+  - Endpoints `/api/stripe/status`, `/api/stripe/connect`, `/api/stripe/disconnect` secured by session token JWT.
+  - Polaris Settings tab integration in `resources/views/app.blade.php` with live status and masking.
+  - 8 feature tests in `tests/Feature/StripeConnectionTest.php` passing cleanly.
+  - Documented in [[S1_T4_STRIPE_CONNECTION]].
+
+- **S1-T5 Completed**: Plans API and configuration screens:
+  - Multi-tenant `PlanController` supporting plan CRUD, active toggling, and live calculation preview.
+  - Automatic synchronization of product GID and collection GID targets within database transactions.
+  - Integration with `DepositCalculationService` for input validation and live preview rendering.
+  - Polaris embedded plans manager table and editor drawer in `resources/views/app.blade.php`.
+  - 9 feature tests in `tests/Feature/PlanManagementTest.php` passing cleanly (63 tests total).
+  - Documented in [[S1_T5_PLANS_API_AND_SCREENS]].
+
+- **S1-T6 Completed**: Deposit calculation service & tests:
+  - Integer cents arithmetic across percentage and fixed deposit calculations.
+  - Zero-penny leakage guarantee (`$depositCents + $balanceCents === $totalCents`).
+  - Half-up rounding, bounds checking, and multi-currency formatting for AUD, USD, EUR, GBP.
+  - 18 unit tests in `tests/Unit/DepositCalculationServiceTest.php` passing cleanly (81 assertions).
+  - Documented in [[S1_T6_DEPOSIT_CALCULATION_SERVICE]].
+
+- **S1-T7 Completed**: Storefront widget Theme App Extension:
+  - HMAC-SHA256 Shopify App Proxy verification middleware (`VerifyShopifyAppProxy`).
+  - App Proxy controller (`AppProxyController::planInfo`) with hierarchical resolution (product > collection > shop default).
+  - Production-ready Theme App Extension: Liquid app block (`deposit_widget.liquid`), accessible CSS (`deposit-widget.css`), lightweight vanilla JS bundle (< 15 KB, `deposit-widget.js`), and locales.
+  - 8 feature tests in `tests/Feature/StorefrontWidgetProxyTest.php` passing cleanly.
+  - Documented in [[S1_T7_STOREFRONT_WIDGET]].
+
+- **S1-T8 Completed**: Stripe-first checkout via `/proxy/checkout` (deposit session, card saved off-session, metadata). 7 tests; suite 78 passing. [[S1_T8_START_CHECKOUT]]. **Sprint 1 complete.**
+
+- **Sprint 2 Completed**: Webhooks, orders, balance link, and emails (S2-T1 through S2-T7):
+  - **S2-T1**: Core financial migrations (`orders`, `payment_schedules`, `payments`, `webhook_events`, `email_templates`, `email_logs`) and Eloquent models with integer cents arithmetic and multi-tenant scoping.
+  - **S2-T2**: Webhook receivers (`/webhooks/stripe` and `/webhooks/shopify`) with sub-second response (< 50ms), HMAC cryptographic verification, and atomic idempotency deduplication via `WebhookEvent`.
+  - **S2-T3**: Event background jobs (`ProcessStripeWebhookJob`) processing `checkout.session.completed` for deposits and balance settlements, provisioning Shopify orders, and dispatching customer confirmations.
+  - **S2-T4**: Shopify order status writeback (`ShopifyOrderService::syncPaymentStatus`) updating order tags (`deposit-paid`, `balance-due` -> `paid`) and `northwind_deposit` metafields.
+  - **S2-T5**: Cryptographically signed balance payment link (`URL::signedRoute`) and customer-facing settlement page with hosted Stripe checkout redirect.
+  - **S2-T6**: Balance reminder scheduler (`app:send-balance-reminders`) checking 7-day due window and preventing duplicate reminder emails.
+  - **S2-T7**: Transactional email service (`EmailService`), customizable templates API (`EmailTemplateController`), and orders listing API (`OrderController`).
+  - **Test Suite**: 93 passed (381 assertions, zero regressions). Full details in [[SPRINT_2_COMPLETION]]. **Sprint 2 complete.**
+
+- **Sprint 3 Completed**: Merchant Dashboard, Search Filters, Refunds, GDPR Webhooks & Audit Logs (S3-T1 through S3-T6):
+  - **S3-T1**: Merchant dashboard API (`/api/dashboard`) returning financial KPIs (total collected, balance due, upcoming charges, failed payments) and embedded Polaris overview stat cards.
+  - **S3-T2**: Order search and payment status filtering (`GET /api/orders?status=...&query=...`), status pills, and interactive table in embedded admin shell.
+  - **S3-T3**: Granular refund flow across Stripe and Shopify (`POST /api/orders/{id}/refund`), Polaris Refund Modal with validation, audit logging, and automatic cancellation of pending balance schedules when deposit is refunded.
+  - **S3-T4**: Mandatory Shopify GDPR webhooks (`customers/data_request`, `customers/redact`, `shop/redact`) with HMAC verification and Australian Tax Office (ATO) 5-year financial ledger retention with customer PII anonymization to `redacted_{id}@privacy.local`.
+  - **S3-T5**: Multi-tenant administrative audit trail (`audit_logs` table, `GET /api/audit-logs` endpoint, and dedicated Audit Trail tab in Polaris admin).
+  - **S3-T6**: Demonstration dataset seeder (`Sprint3DemoSeeder`) populating realistic Australian ceramic orders across all 6 payment lifecycle states.
+  - **Test Suite**: 120 passed (519 assertions, 100% green, zero regressions). Details in [[ADR_006_SPRINT_3_MVP_AND_REFUND_ARCHITECTURE]]. **Sprint 3 (Phase 3 MVP Complete) 100% implemented.**
+
+- **Phase 2 (Sprint 4 & Sprint 5) Completed**: Installments, Subscriptions, Customer Portal & Security Controls:
+  - **S4-T1**: `InstallmentService` calculation engine with zero-penny remainder penny distribution (`intdiv`) and configurable intervals.
+  - **S4-T2**: Storefront widget installment plans integration and selection options.
+  - **S4-T3 & S4-T4**: Automated off-session charge runner (`app:process-due-schedules`) with pessimistic row locking (`lockForUpdate()`), smart retries on days 1, 3, 5, and terminal failure flagging (`installment-failed`).
+  - **S4-T5**: Hosted customer card update page via Stripe SetupIntent (`usage: 'off_session'`) and Stripe Elements with 7-day signed route link.
+  - **S4-T6**: Dispute & fraud alert webhook handler (`charge.dispute.created`) tagging orders `dispute-opened` and updating status to `disputed`.
+  - **S4-T7**: Comprehensive installment test journeys in `InstallmentChargeRunnerTest`.
+  - **S5-T1 & S5-T2**: Ceramic Club subscriptions (`subscriptions` table, `Subscription` model, pause/resume/skip/cancel endpoints, and `invoice.payment_succeeded` recurring provisioning).
+  - **S5-T3**: Customer self-service portal (`/customer/portal`) with 15-minute magic link authentication and enumeration defense.
+  - **S5-T4**: Staff role restriction middleware (`EnsureOwnerRole`) protecting refunds and Stripe credentials (HTTP 403 for staff).
+  - **S5-T5**: High-performance streaming CSV transaction export (`GET /api/transactions/export`).
+  - **S5-T6 & S5-T7**: Security audits, PCI SAQ-A review, and documentation. Full details in [[PHASE_2_COMPLETION]]. **Phase 2 complete.**
 
 ## In Progress
-- **S1-T3**: Embedded admin shell (App Bridge v4, session tokens, Polaris layout, navigation).
+- None.
 
 ## Blocked
 - None.
 
 ## Next Logical Tasks
-1. Complete S1-T3 embedded admin shell implementation and verification.
-2. Advance to S1-T4: Stripe connection.
+1. Weekly stakeholder demonstration to Emma Carter.
+2. Production staging deployment verification (`make staging-deploy`).
+3. Final Shopify App Store listing review.
 
 ## Development Kanban
 - Living board: [Northwind Ceramics — Development Board (Notion)](https://app.notion.com/p/3f64a48ac6c98056ae2be7af1bf1ff31)
 - Database ID: `3f64a48a-c6c9-8056-ae2b-e7af1bf1ff31`
 - Parent Page: [To Do List](https://app.notion.com/p/To-Do-List-3f64a48ac6c9800aaaeeee87f7f255be)
-- Buddy Mode: Antigravity Development Buddy Mode active (`Section 37`).
-- Historical Snapshot: [[DEVELOPMENT_KANBAN]] preserved as markdown baseline.
+- Status: All Sprint 0 through Sprint 5 cards synchronized to Done & Verified.
 
 ## Last Updated
 2026-10-12
+
 

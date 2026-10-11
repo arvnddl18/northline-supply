@@ -1,0 +1,118 @@
+/* Northwind Ceramics - Storefront Deposit Widget Styles */
+.northwind-deposit-card {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 8px;
+  background-color: var(--color-background, #ffffff);
+  color: var(--color-foreground, #111827);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.northwind-deposit-card:focus-within {
+  border-color: #0d9488;
+}
+
+.northwind-badge-lead-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: #fef3c7;
+  color: #92400e;
+  margin-bottom: 0.75rem;
+}
+
+.northwind-options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.northwind-option-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: 48px; /* Accessible WCAG touch target */
+  transition: all 0.15s ease-in-out;
+}
+
+.northwind-option-label:hover {
+  background-color: #f9fafb;
+}
+
+.northwind-option-label.selected {
+  border-color: #0d9488;
+  background-color: #f0fdfa;
+}
+
+.northwind-radio-input {
+  margin-top: 0.2rem;
+  accent-color: #0d9488;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.northwind-option-content {
+  flex: 1;
+}
+
+.northwind-option-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.northwind-option-desc {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.northwind-deposit-breakdown {
+  display: flex;
+  justify-content: space-between;
+  background: #f9fafb;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  border: 1px dashed #d1d5db;
+}
+
+.northwind-breakdown-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.northwind-breakdown-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.northwind-breakdown-value {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #0f766e;
+}
+
+.northwind-policy-note {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.75rem;
+  text-align: center;
+  font-style: italic;
+}

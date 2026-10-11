@@ -34,15 +34,39 @@ class ShopifyWebhookController extends Controller
             return response()->json(['error' => 'Unauthorized: Invalid webhook signature.'], 401);
         }
 
-        $topic = $request->header('X-Shopify-Topic');
-        $shopDomain = $request->header('X-Shopify-Shop-Domain');
+        $topic = (string) $request->header('X-Shopify-Topic');
+        $shopDomain = (string) $request->header('X-Shopify-Shop-Domain');
+        $webhookId = (string) ($request->header('X-Shopify-Webhook-Id') ?: ('shopify_' . md5($rawPayload)));
 
-        Log::info("Received Shopify webhook [{$topic}] for {$shopDomain}");
+        Log::info("Received Shopify webhook [{$topic}] for {$shopDomain} (id: {$webhookId})");
 
-        // 2. Route topics
+        // 2. Deduplication check via WebhookEvent
+        $parsedJson = json_decode($rawPayload, true) ?: [];
+        $event = \App\Models\WebhookEvent::firstOrCreate(
+            ['external_id' => $webhookId],
+            [
+                'source' => 'shopify',
+                'topic' => $topic,
+                'payload' => $parsedJson,
+                'status' => \App\Models\WebhookEvent::STATUS_PENDING,
+                'received_at' => now(),
+            ]
+        );
+
+        if (!$event->wasRecentlyCreated) {
+            Log::info("Ignoring duplicate Shopify webhook [{$webhookId}]");
+            return response()->json([
+                'status' => 'duplicate_ignored',
+                'id' => $webhookId,
+            ], 200);
+        }
+
+        // 3. Route topics
         if ($topic === 'app/uninstalled') {
             $this->handleAppUninstalled($shopDomain);
         }
+
+        $event->markProcessed();
 
         // Sub-second response as required by NFR-11
         return response()->json([

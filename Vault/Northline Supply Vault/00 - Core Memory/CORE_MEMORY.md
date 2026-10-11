@@ -58,7 +58,7 @@
 - Notion database ID: 3f64a48a-c6c9-8056-ae2b-e7af1bf1ff31
 - Parent page ID: 3f64a48a-c6c9-800a-aaee-ee87f7f255be (To Do List)
 - Last board sync: 2026-10-12
-- Current sprint: Sprint 1
+- Current sprint: Sprint 3 (Dashboard, Refunds, Privacy, MVP Demo)
 
 
 ## Spec References

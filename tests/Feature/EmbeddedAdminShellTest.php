@@ -78,7 +78,7 @@ class EmbeddedAdminShellTest extends TestCase
 
     public function test_root_renders_embedded_admin_view_with_csp_headers_for_installed_shop(): void
     {
-        Shop::factory()->create([
+        Shop::create([
             'shopify_domain' => $this->shopDomain,
             'access_token' => 'shpat_valid_test_token',
             'installed_at' => now(),
@@ -153,7 +153,7 @@ class EmbeddedAdminShellTest extends TestCase
 
     public function test_api_overview_returns_shop_status_and_checklist_for_valid_token(): void
     {
-        $shop = Shop::factory()->create([
+        $shop = Shop::create([
             'shopify_domain' => $this->shopDomain,
             'access_token' => 'shpat_valid_test_token',
             'installed_at' => now(),

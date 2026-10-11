@@ -295,10 +295,8 @@ northline-supply/
 │   └── Feature/                   # Feature test suite (OAuth, Migrations, Admin Shell, Health)
 ├── Vault/
 │   └── Northline Supply Vault/    # Authoritative Obsidian living specification repository
-├── docker-compose.yml             # Local Docker Compose topology (App, Worker, Scheduler, DB, Redis)
-├── docker-compose.staging.yml     # Staging Docker Compose topology with Caddy TLS
-├── Dockerfile                     # Multi-stage production container build
-├── Makefile                       # Developer CLI targets
+├── Dockerfile                     # Streamlined production container build (PHP 8.3 + Nginx + Redis + PgSQL)
+├── Makefile                       # Developer CLI targets (pure Docker)
 └── shopify.app.toml               # Shopify App CLI configuration & access scopes
 ```
 
@@ -307,7 +305,7 @@ northline-supply/
 ## Local Development & Environment Setup
 
 ### Prerequisites
-- [Docker](https://www.docker.com/) & Docker Compose v2+
+- [Docker](https://www.docker.com/) (pure container runner, no compose needed)
 - [Node.js](https://nodejs.org/) v22+ and npm
 - [Stripe CLI](https://stripe.com/docs/stripe-cli) (for local webhook testing)
 - [Shopify CLI](https://shopify.dev/docs/apps/tools/cli) (for partner development stores)

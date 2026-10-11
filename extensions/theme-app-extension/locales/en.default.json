@@ -1,0 +1,11 @@
+{
+  "deposit_widget": {
+    "title": "Pre-order Deposit Option",
+    "deposit_option": "Pay Deposit Now",
+    "full_option": "Pay in Full",
+    "due_today": "Due today",
+    "due_later": "Due prior to dispatch",
+    "lead_time": "Handmade ceramic production lead time: 3 to 6 weeks.",
+    "cancellation_policy": "Deposits are non-refundable once making begins."
+  }
+}

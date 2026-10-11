@@ -24,12 +24,12 @@
     "stripe:listen": "powershell -ExecutionPolicy Bypass -File scripts/stripe-listen.ps1",
     "stripe:login": "stripe login",
     "stripe:trigger": "stripe trigger",
-    "stack:setup": "powershell -ExecutionPolicy Bypass -File scripts/stack.ps1 setup",
-    "stack:up": "docker compose up -d",
-    "stack:down": "docker compose down",
-    "stack:migrate": "docker compose exec app php artisan migrate",
-    "stack:test": "docker compose run --rm app php artisan test",
-    "stack:logs": "docker compose logs -f"
+    "stack:setup": "powershell -ExecutionPolicy Bypass -File scripts/stack.ps1 up",
+    "stack:up": "powershell -ExecutionPolicy Bypass -File scripts/stack.ps1 up",
+    "stack:down": "powershell -ExecutionPolicy Bypass -File scripts/stack.ps1 down",
+    "stack:migrate": "powershell -ExecutionPolicy Bypass -File scripts/stack.ps1 migrate",
+    "stack:test": "powershell -ExecutionPolicy Bypass -File scripts/stack.ps1 test",
+    "stack:logs": "powershell -ExecutionPolicy Bypass -File scripts/stack.ps1 logs"
   },
   "type": "module",
   "engines": {

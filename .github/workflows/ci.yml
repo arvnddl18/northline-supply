@@ -99,7 +99,7 @@ jobs:
           echo "App Proxy contract verification will execute here upon Sprint 2 completion."
 
   docker:
-    name: Docker Build, Health Smoke Test & GHCR Push
+    name: Docker Build, Full-Stack Smoke Test & GHCR Push
     needs: [frontend, backend]
     runs-on: ubuntu-latest
     steps:
@@ -107,15 +107,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: actions/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+        uses: docker/setup-buildx-action@v3
 
       - name: Extract Docker metadata
         id: meta
@@ -126,38 +118,46 @@ jobs:
             type=sha,format=short,prefix=sha-
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
+      # Built ONCE: the image smoke-tested below is byte-for-byte the image pushed and deployed.
       - name: Build container image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile
           load: true
-          tags: northwind-payment-app:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Verify Container Health (/health endpoint smoke test)
-        run: |
-          echo "Spinning up container smoke test..."
-          docker run -d --name test-app -p 8000:80 \
-            -e APP_KEY=base64:3f64a48ac6c98056ae2be7af1bf1ff31 \
-            -e DB_CONNECTION=sqlite \
-            -e DB_DATABASE=:memory: \
-            -e QUEUE_CONNECTION=sync \
-            -e CACHE_STORE=file \
-            -e SESSION_DRIVER=file \
-            northwind-payment-app:test
-          sleep 4
-          docker exec test-app curl -fsS http://localhost/health || docker logs test-app
-          docker stop test-app && docker rm test-app
-
-      - name: Push container image to GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile
-          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Same script staging runs: web + worker + scheduler + Postgres 16 + Redis 7 + Caddy, migrations, /health.
+      - name: Smoke test full stack via scripts/deploy-staging.sh
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          IMAGE="$(grep ':sha-' <<< "$TAGS")"
+          cp .env.example .env
+          sed -i "s|^APP_KEY=.*|APP_KEY=$(docker run --rm "$IMAGE" php artisan key:generate --show)|" .env
+          DOCKER_IMAGE="$IMAGE" bash scripts/deploy-staging.sh
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: |
+          docker ps -a
+          for c in $(docker ps -aq --filter name=northwind-staging); do
+            echo "::group::$(docker inspect -f '{{.Name}}' "$c")"; docker logs --tail 100 "$c"; echo "::endgroup::"
+          done
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push tested image to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: echo "$TAGS" | xargs -n1 docker push

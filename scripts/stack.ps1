@@ -4,16 +4,28 @@ param(
     [string]$Action = "help"
 )
 
+$network = "northwind-net"
+$web = "northwind-payment-web"
+$worker = "northwind-payment-worker"
+$scheduler = "northwind-payment-scheduler"
+$postgres = "northwind-postgres"
+$redis = "northwind-redis"
+
+function Ensure-Network {
+    $exists = docker network ls --filter name=^$network$ --format "{{.Name}}"
+    if (-not $exists) {
+        docker network create $network | Out-Null
+    }
+}
+
 function Show-Help {
     Write-Host "==========================================================" -ForegroundColor Cyan
-    Write-Host " Northwind Ceramics - Docker Stack Manager" -ForegroundColor Cyan
+    Write-Host " Northwind Ceramics - Docker Stack Manager (Pure Docker)" -ForegroundColor Cyan
     Write-Host "==========================================================" -ForegroundColor Cyan
     Write-Host "Usage: .\scripts\stack.ps1 <command>" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Commands:"
-    Write-Host "  setup    - First-time setup: build, launch, install packages, migrate" -ForegroundColor Green
-    Write-Host "  build    - Build Docker images"
-    Write-Host "  up       - Start containers in background"
+    Write-Host "  up       - Start containers in background using pure Docker" -ForegroundColor Green
     Write-Host "  down     - Stop and remove containers"
     Write-Host "  restart  - Restart containers"
     Write-Host "  logs     - Tail container logs"
@@ -25,61 +37,69 @@ function Show-Help {
 }
 
 switch ($Action) {
-    "setup" {
-        Write-Host "==> Initializing Northwind Ceramics Docker Stack..." -ForegroundColor Cyan
-        if (-not (Test-Path ".env")) {
-            Copy-Item ".env.example" ".env"
-            Write-Host "==> Created .env from .env.example" -ForegroundColor Green
-        }
-        Write-Host "==> Building Docker images..." -ForegroundColor Cyan
-        docker compose build
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-        Write-Host "==> Starting containers..." -ForegroundColor Cyan
-        docker compose up -d
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-        Write-Host "==> Running Composer install inside container..." -ForegroundColor Cyan
-        docker compose exec app composer install --no-interaction --prefer-dist --optimize-autoloader
-
-        Write-Host "==> Generating application key..." -ForegroundColor Cyan
-        docker compose exec app php artisan key:generate --force
-
-        Write-Host "==> Running database migrations..." -ForegroundColor Cyan
-        docker compose exec app php artisan migrate --force
-
-        Write-Host "==> Stack ready! Web app available at: http://localhost:8000" -ForegroundColor Green
-    }
-    "build" {
-        docker compose build
-    }
     "up" {
-        docker compose up -d
+        Ensure-Network
+        $root = (Get-Item -Path ".").FullName.Replace("\", "/")
+
+        # Postgres
+        if (-not (docker ps -q -f name=^/$postgres$)) {
+            docker rm -f $postgres 2>$null | Out-Null
+            docker run -d --name $postgres --network $network -e POSTGRES_DB=northwind_payment -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -v northline-supply_postgres_data:/var/lib/postgresql/data -p 5432:5432 postgres:16-alpine | Out-Null
+        }
+
+        # Redis
+        if (-not (docker ps -q -f name=^/$redis$)) {
+            docker rm -f $redis 2>$null | Out-Null
+            docker run -d --name $redis --network $network -v northline-supply_redis_data:/data -p 6379:6379 redis:7-alpine | Out-Null
+        }
+
+        # Web
+        if (-not (docker ps -q -f name=^/$web$)) {
+            docker rm -f $web 2>$null | Out-Null
+            docker run -d --name $web --network $network -p 8000:80 -v "${root}:/var/www/html" -v northline-supply_app_vendor:/var/www/html/vendor -e APP_ENV=local -e DB_HOST=$postgres -e REDIS_HOST=$redis northwind-payment-app:latest | Out-Null
+        }
+
+        # Worker
+        if (-not (docker ps -q -f name=^/$worker$)) {
+            docker rm -f $worker 2>$null | Out-Null
+            docker run -d --name $worker --network $network -v "${root}:/var/www/html" -v northline-supply_app_vendor:/var/www/html/vendor -e APP_ENV=local -e DB_HOST=$postgres -e REDIS_HOST=$redis northwind-payment-app:latest php artisan queue:work --tries=3 --timeout=90 | Out-Null
+        }
+
+        # Scheduler
+        if (-not (docker ps -q -f name=^/$scheduler$)) {
+            docker rm -f $scheduler 2>$null | Out-Null
+            docker run -d --name $scheduler --network $network -v "${root}:/var/www/html" -v northline-supply_app_vendor:/var/www/html/vendor -e APP_ENV=local -e DB_HOST=$postgres -e REDIS_HOST=$redis northwind-payment-app:latest php artisan schedule:work | Out-Null
+        }
+
+        Write-Host "==> Stack online via Docker: http://localhost:8000" -ForegroundColor Green
     }
     "down" {
-        docker compose down
+        docker rm -f $web $worker $scheduler $postgres $redis 2>$null | Out-Null
+        Write-Host "==> Stack containers stopped and removed" -ForegroundColor Green
     }
     "restart" {
-        docker compose down
-        docker compose up -d
+        & $PSCommandPath down
+        & $PSCommandPath up
     }
     "logs" {
-        docker compose logs -f
+        docker logs -f $web
     }
     "migrate" {
-        docker compose exec app php artisan migrate
+        docker exec -it $web php artisan migrate
     }
     "test" {
-        docker compose exec app php artisan test
+        docker exec -t $web php artisan test
     }
     "shell" {
-        docker compose exec app sh
+        docker exec -it $web sh
     }
     "tinker" {
-        docker compose exec app php artisan tinker
+        docker exec -it $web php artisan tinker
     }
     "clean" {
-        docker compose down -v
+        & $PSCommandPath down
+        docker volume rm northline-supply_postgres_data northline-supply_redis_data 2>$null | Out-Null
+        Write-Host "==> Containers and database volumes removed" -ForegroundColor Green
     }
     default {
         Show-Help

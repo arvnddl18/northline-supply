@@ -1,9 +1,12 @@
 name: Deploy Staging
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI Pipeline"]
     branches:
       - main
+    types:
+      - completed
   workflow_dispatch:
 
 concurrency:
@@ -12,11 +15,26 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy to Staging VPS
+    name: Deploy to Staging VPS (Pure Docker)
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Resolve Docker Image Tag
+        id: image_info
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            TARGET_SHA="${{ github.event.workflow_run.head_sha }}"
+          else
+            TARGET_SHA="${GITHUB_SHA}"
+          fi
+          SHORT_SHA="${TARGET_SHA:0:7}"
+          IMAGE="ghcr.io/${{ github.repository }}:sha-${SHORT_SHA}"
+          echo "target_image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "target_sha=${TARGET_SHA}" >> "$GITHUB_OUTPUT"
+          echo "Deploy target image: ${IMAGE}"
 
       - name: Deploy via SSH to VPS
         uses: appleboy/ssh-action@v1.0.3
@@ -26,40 +44,25 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: ${{ secrets.STAGING_PORT || 22 }}
           script_stop: true
-          envs: GITHUB_SHA
           script: |
             set -e
             APP_DIR="${{ secrets.STAGING_PATH || '/var/www/northwind' }}"
-            echo "=== [1/6] Navigating to application directory: $APP_DIR ==="
+            echo "=== [1/3] Navigating to application directory: $APP_DIR ==="
             cd "$APP_DIR"
 
-            echo "=== [2/6] Pulling latest repository code ==="
+            echo "=== [2/3] Pulling latest repository code ==="
             git fetch origin main
             git reset --hard origin/main
 
-            echo "=== [3/6] Starting Docker Compose staging stack ==="
-            docker compose -f docker-compose.staging.yml pull || true
-            docker compose -f docker-compose.staging.yml build
-            docker compose -f docker-compose.staging.yml up -d --remove-orphans
-
-            echo "=== [4/6] Running database migrations ==="
-            docker compose -f docker-compose.staging.yml exec -T app php artisan migrate --force
-
-            echo "=== [5/6] Optimizing configuration & route caches ==="
-            docker compose -f docker-compose.staging.yml exec -T app php artisan config:cache
-            docker compose -f docker-compose.staging.yml exec -T app php artisan route:cache
-            docker compose -f docker-compose.staging.yml exec -T app php artisan queue:restart
-
-            echo "=== [6/6] Verifying application health endpoint ==="
-            docker compose -f docker-compose.staging.yml exec -T app curl -fsS http://localhost/health
+            echo "=== [3/3] Running pure Docker staging deploy ==="
+            DOCKER_IMAGE="${{ steps.image_info.outputs.target_image }}" bash scripts/deploy-staging.sh
 
             # shortcut: Placeholder for Sentry release tracking; activate when SENTRY_AUTH_TOKEN is configured in secrets
             echo "=== [Placeholder] Sentry Release Notification ==="
-            echo "Release tracking will record deployment for commit: $GITHUB_SHA"
+            echo "Release tracking will record deployment for commit: ${{ steps.image_info.outputs.target_sha }}"
 
             # shortcut: Placeholder for automated Stripe webhook listener verification (Sprint 3)
             echo "=== [Placeholder] Stripe Webhook Ping ==="
             echo "Webhook listener verification will probe Stripe test webhook receiver once endpoints are exposed."
 
-            echo "Staging deployment completed successfully for commit $GITHUB_SHA!"
-
+            echo "Staging deployment completed successfully for commit ${{ steps.image_info.outputs.target_sha }}!"

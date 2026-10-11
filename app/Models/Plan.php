@@ -50,6 +50,14 @@ class Plan extends Model
     }
 
     /**
+     * Recurring subscriptions under this plan.
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
      * Scope query to only active plans.
      */
     public function scopeActive(Builder $query): Builder

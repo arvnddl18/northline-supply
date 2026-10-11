@@ -1,0 +1,37 @@
+{% comment %}
+  Northwind Ceramics - Storefront Deposit Pre-order Widget App Block
+  Compatible with Shopify Dawn and OS 2.0 themes.
+{% endcomment %}
+
+<div id="northwind-deposit-widget"
+     data-product-id="{{ product.id }}"
+     data-price="{{ product.selected_or_first_available_variant.price }}"
+     data-currency="{{ cart.currency.iso_code }}"
+     data-collections="{{ product.collections | map: 'id' | join: ',' }}"
+     style="display: none;">
+</div>
+
+{{ 'deposit-widget.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'deposit-widget.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Deposit Pre-order Widget",
+  "target": "section",
+  "templates": ["product"],
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Custom Widget Heading",
+      "default": "Pre-order Deposit"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent Color",
+      "default": "#0d9488"
+    }
+  ]
+}
+{% endschema %}

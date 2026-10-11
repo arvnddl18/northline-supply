@@ -27,4 +27,20 @@ class Customer extends Model
     {
         return $this->belongsTo(Shop::class);
     }
+
+    /**
+     * Orders placed by this customer.
+     */
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Subscriptions held by this customer.
+     */
+    public function subscriptions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
 }
