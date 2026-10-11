@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "b8b6dddb101784ac",
+        "id": "983580e967d5b345",
         "type": "tabs",
         "children": [
           {
-            "id": "f383fabb8e378136",
+            "id": "e47943b55ec0f591",
             "type": "leaf",
             "state": {
               "type": "kanban",
@@ -16,12 +16,7 @@
                 "file": "09 - Current State/DEVELOPMENT_KANBAN.md",
                 "kanbanViewState": {
                   "kanban-plugin": "board",
-                  "list-collapse": [
-                    null,
-                    false,
-                    false,
-                    null
-                  ]
+                  "list-collapse": []
                 }
               },
               "icon": "lucide-trello",
@@ -197,13 +192,19 @@
       "obsidian-kanban:Create new board": false
     }
   },
-  "active": "f383fabb8e378136",
+  "active": "e47943b55ec0f591",
   "lastOpenFiles": [
-    "03 - Decisions/ADR_002_CHECKOUT_STRATEGY.md",
+    "06 - Technical Knowledge/STRIPE_AND_SHOPIFY_SETUP.md",
+    "INIT-01 Ingest 12-page requirements & spec baseline (Agent) p0-must decision sprint0 PRD.md",
+    "Untitled.canvas",
     "09 - Current State/DEVELOPMENT_KANBAN.md",
+    "11 - Specs/PRD.md",
+    "02 - Architecture/SYSTEM_ARCHITECTURE.md",
+    "08 - Completed Work/SPRINT_PLAN_INGESTION.md",
+    "03 - Decisions/ADR_002_CHECKOUT_STRATEGY.md",
     "09 - Current State/CURRENT_STATE.md",
+    "08 - Completed Work/SPECIFICATION_INGESTION.md",
     "00 - Core Memory/CORE_MEMORY.md",
-    "2026-10-11.md",
-    "Untitled.canvas"
+    "2026-10-11.md"
   ]
 }

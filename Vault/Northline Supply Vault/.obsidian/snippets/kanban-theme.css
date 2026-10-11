@@ -1,160 +1,226 @@
 /* ==========================================================================
-   Northline Supply — Obsidian Kanban Sticky Notes Theme
+   Northline Supply — Obsidian Kanban Clean Sticky Notes Theme
+   - Columns spaced with 20px margins (never touch)
+   - Cards stacked strictly in vertical rows (never side-by-side columns)
+   - Scrollable card body with max-height (cards never stretch vertically)
+   - Simple, concise legend matching Image 2
    ========================================================================== */
 
-/* Pinboard / Corkboard Canvas Background */
+/* 1. Board Canvas & Column Spacing */
 .kanban-plugin__board {
-  padding: 20px;
-  gap: 20px;
-  background-color: #f6f3eb;
-  background-image: radial-gradient(#dfd9cb 1.2px, transparent 1.2px);
-  background-size: 18px 18px;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 20px !important;
+  padding: 24px 28px !important;
+  background-color: #f7f5f0;
+  background-image: radial-gradient(#dfd9cb 1px, transparent 1px);
+  background-size: 20px 20px;
   min-height: 100vh;
+  align-items: flex-start !important;
+  overflow-x: auto !important;
 }
 
-/* Dark mode adjustment for board background */
 .theme-dark .kanban-plugin__board {
-  background-color: #1a1a22;
-  background-image: radial-gradient(#2d2d3a 1.2px, transparent 1.2px);
+  background-color: #16161c;
+  background-image: radial-gradient(#272732 1px, transparent 1px);
 }
 
-/* Lane / Column Boards (Frosted Bulletin Frames) */
+/* Ensure each column lane wrapper has fixed width and clear right margin */
+.kanban-plugin__board > * {
+  flex: 0 0 300px !important;
+  min-width: 290px !important;
+  width: 300px !important;
+  max-width: 320px !important;
+  margin-right: 20px !important;
+  margin-bottom: 24px !important;
+}
+
+.kanban-plugin__board > *:last-child {
+  margin-right: 0 !important;
+}
+
+/* 2. Column / Lane Body */
 .kanban-plugin__lane {
-  background-color: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  width: 100% !important;
+  min-width: 100% !important;
+  margin: 0 !important;
+  background-color: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.07);
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
   overflow: visible;
 }
 
 .theme-dark .kanban-plugin__lane {
-  background-color: rgba(28, 28, 36, 0.8);
-  border-color: rgba(255, 255, 255, 0.07);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  background-color: rgba(26, 26, 34, 0.9);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
 }
 
-/* Lane Headers */
+/* Column Header */
 .kanban-plugin__lane-header-wrapper {
-  padding: 12px 16px 8px 16px;
+  padding: 12px 16px 10px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .kanban-plugin__lane-title-text {
   font-weight: 700;
-  font-size: 0.95rem;
-  letter-spacing: 0.03em;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-normal);
 }
 
-/* Column Header Accent Lines */
-.kanban-plugin__lane:nth-child(1) { border-top: 4px solid #a855f7; }
-.kanban-plugin__lane:nth-child(2) { border-top: 4px solid #3b82f6; }
-.kanban-plugin__lane:nth-child(3) { border-top: 4px solid #f59e0b; }
-.kanban-plugin__lane:nth-child(4) { border-top: 4px solid #10b981; }
+/* Column Header Top Accent Strips */
+.kanban-plugin__board > *:nth-child(1) .kanban-plugin__lane { border-top: 3.5px solid #6366f1 !important; }
+.kanban-plugin__board > *:nth-child(2) .kanban-plugin__lane { border-top: 3.5px solid #8b5cf6 !important; }
+.kanban-plugin__board > *:nth-child(3) .kanban-plugin__lane { border-top: 3.5px solid #3b82f6 !important; }
+.kanban-plugin__board > *:nth-child(4) .kanban-plugin__lane {
+  border: 1.5px solid #f59e0b !important;
+  border-top: 3.5px solid #f59e0b !important;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.12) !important;
+}
+.kanban-plugin__board > *:nth-child(5) .kanban-plugin__lane { border-top: 3.5px solid #10b981 !important; }
 
-/* Sticky Note Cards */
+/* 3. STRICT ROW-BY-ROW CARD LISTING (Stack vertically, never side-by-side columns) */
+.kanban-plugin__lane-items {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
+  padding: 8px 10px 14px 10px !important;
+  gap: 10px !important;
+  box-sizing: border-box !important;
+}
+
+/* 4. Sticky Note Cards */
+.kanban-plugin__item-wrapper,
 .kanban-plugin__item {
+  display: block !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
   position: relative;
-  border-radius: 2px 2px 8px 8px;
-  margin: 10px 12px 14px 12px;
-  padding: 14px 14px 12px 14px;
-  border: none;
-  border-top: 4px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 2px 5px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
-  transition: transform 0.18s cubic-bezier(0.2, 0, 0.2, 1), box-shadow 0.18s ease;
+  border-radius: 6px;
+  padding: 10px 12px !important;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 3px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 3px 8px rgba(0, 0, 0, 0.03);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   font-family: var(--font-text);
   color: #1e293b;
+  background-color: #ffffff;
 }
 
-/* Subtle organic sticky note angles for authentic feel */
-.kanban-plugin__item:nth-child(odd) {
-  transform: rotate(-0.6deg);
-}
-.kanban-plugin__item:nth-child(even) {
-  transform: rotate(0.6deg);
-}
-
-/* Hover Lift Effect */
 .kanban-plugin__item:hover {
-  transform: rotate(0deg) scale(1.02) translateY(-3px);
-  box-shadow: 4px 12px 22px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
-  z-index: 10;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  z-index: 5;
 }
 
-/* --- Sticky Note Colors per Column --- */
+/* Card Pastel Tints per Column */
+.kanban-plugin__board > *:nth-child(1) .kanban-plugin__item { background: #fcfbfc; border-color: rgba(99, 102, 241, 0.25); border-top-color: #818cf8; }
+.kanban-plugin__board > *:nth-child(2) .kanban-plugin__item { background: #fbf9ff; border-color: rgba(196, 181, 253, 0.4); border-top-color: #c4b5fd; }
+.kanban-plugin__board > *:nth-child(3) .kanban-plugin__item { background: #fffdf5; border-color: rgba(253, 224, 71, 0.4); border-top-color: #fde047; }
+.kanban-plugin__board > *:nth-child(4) .kanban-plugin__item { background: #fffaf5; border-color: rgba(253, 186, 116, 0.45); border-top-color: #fdba74; }
+.kanban-plugin__board > *:nth-child(5) .kanban-plugin__item { background: #f8fdf9; border-color: rgba(134, 239, 172, 0.4); border-top-color: #86efac; }
 
-/* Backlog: Soft Pastel Lavender Note */
-.kanban-plugin__lane:nth-child(1) .kanban-plugin__item {
-  background: linear-gradient(180deg, #fbf7ff 0%, #f3e8ff 100%);
-  border-top-color: #d8b4fe;
+/* Dark mode tints */
+.theme-dark .kanban-plugin__board > *:nth-child(1) .kanban-plugin__item { background: #1f1f2a; border-top-color: #6366f1; }
+.theme-dark .kanban-plugin__board > *:nth-child(2) .kanban-plugin__item { background: #201e2a; border-top-color: #a78bfa; }
+.theme-dark .kanban-plugin__board > *:nth-child(3) .kanban-plugin__item { background: #23221c; border-top-color: #eab308; }
+.theme-dark .kanban-plugin__board > *:nth-child(4) .kanban-plugin__item { background: #25201b; border-top-color: #f97316; }
+.theme-dark .kanban-plugin__board > *:nth-child(5) .kanban-plugin__item { background: #1b241e; border-top-color: #22c55e; }
+
+/* 5. SCROLLABLE CARD BODY (Cards never stretch vertically) */
+.kanban-plugin__item-title {
+  font-size: 0.8125rem !important;
+  line-height: 1.48 !important;
+  color: #1e293b !important;
+  font-weight: 450 !important;
+  max-height: 105px !important; /* Cap card text height */
+  overflow-y: auto !important;   /* Scroll if context is long */
+  overflow-x: hidden !important;
+  scrollbar-width: thin !important;
+  word-break: normal !important;
 }
 
-/* Todo: Classic Sunny Pastel Yellow Note */
-.kanban-plugin__lane:nth-child(2) .kanban-plugin__item {
-  background: linear-gradient(180deg, #fffbeb 0%, #fef08a 100%);
-  border-top-color: #fde047;
+.kanban-plugin__item-title::-webkit-scrollbar {
+  width: 3px;
+}
+.kanban-plugin__item-title::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
 }
 
-/* In Progress: Warm Peach / Tangerine Note */
-.kanban-plugin__lane:nth-child(3) .kanban-plugin__item {
-  background: linear-gradient(180deg, #fff7ed 0%, #fed7aa 100%);
-  border-top-color: #fdba74;
+.theme-dark .kanban-plugin__item-title {
+  color: #e2e8f0 !important;
 }
 
-/* Done: Fresh Mint Green Note */
-.kanban-plugin__lane:nth-child(4) .kanban-plugin__item {
-  background: linear-gradient(180deg, #f0fdf4 0%, #bbf7d0 100%);
-  border-top-color: #86efac;
-  opacity: 0.94;
-}
-
-/* Ensure dark mode text on light sticky notes is clear & readable */
-.theme-dark .kanban-plugin__item {
+.kanban-plugin__item-title strong {
+  font-weight: 650;
   color: #0f172a;
 }
-.theme-dark .kanban-plugin__item-title {
-  color: #1e293b !important;
+
+.theme-dark .kanban-plugin__item-title strong {
+  color: #f8fafc;
 }
 
-/* Card Text */
-.kanban-plugin__item-title {
-  font-size: 0.9rem;
-  line-height: 1.45;
-  color: #1e293b !important;
-  font-weight: 500;
+/* 6. Priority Indicators */
+.kanban-plugin__item:has(a[href*="p0-must"]) { border-left: 3.5px solid #ef4444 !important; }
+.kanban-plugin__item:has(a[href*="p1-should"]) { border-left: 3.5px solid #f97316 !important; }
+.kanban-plugin__item:has(a[href*="p2-could"]) { border-left: 3.5px solid #3b82f6 !important; }
+
+/* 7. Tags & Badges (Anti-Wrapping) */
+.kanban-plugin__item a.tag,
+.kanban-plugin__item .tag {
+  font-size: 0.65rem !important;
+  font-weight: 600 !important;
+  line-height: 1.15 !important;
+  padding: 1.5px 6px !important;
+  border-radius: 4px !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  display: inline-block !important;
+  margin: 3px 2px 1px 0 !important;
+  text-decoration: none !important;
+  vertical-align: middle !important;
 }
 
-/* Checkbox inside sticky note */
-.kanban-plugin__item input[type="checkbox"] {
-  accent-color: #4f46e5;
-  cursor: pointer;
-}
+/* Priority tags */
+.kanban-plugin__item a.tag[href*="p0-must"] { background-color: #ef4444 !important; color: #fff !important; }
+.kanban-plugin__item a.tag[href*="p1-should"] { background-color: #f97316 !important; color: #fff !important; }
+.kanban-plugin__item a.tag[href*="p2-could"] { background-color: #3b82f6 !important; color: #fff !important; }
 
-/* Spec links & Tag badges inside Sticky Notes */
+/* Work type tags */
+.kanban-plugin__item a.tag[href*="decision"] { background-color: #f3e8ff !important; color: #6b21a8 !important; border: 1px solid #d8b4fe !important; }
+.kanban-plugin__item a.tag[href*="dev"] { background-color: #f0fdfa !important; color: #0f766e !important; border: 1px solid #99f6e4 !important; }
+
+/* Sprint tags */
+.kanban-plugin__item a.tag[href*="sprint0"] { background-color: #ecfdf5 !important; color: #047857 !important; border: 1px solid #a7f3d0 !important; }
+.kanban-plugin__item a.tag[href*="sprint1"] { background-color: #ecfeff !important; color: #0e7490 !important; border: 1px solid #a5f3fc !important; }
+.kanban-plugin__item a.tag[href*="sprint2"] { background-color: #eef2ff !important; color: #4338ca !important; border: 1px solid #c7d2fe !important; }
+.kanban-plugin__item a.tag[href*="sprint3"] { background-color: #f5f3ff !important; color: #6d28d9 !important; border: 1px solid #ddd6fe !important; }
+.kanban-plugin__item a.tag[href*="sprint4"] { background-color: #faf5ff !important; color: #7e22ce !important; border: 1px solid #e9d5ff !important; }
+.kanban-plugin__item a.tag[href*="sprint5"] { background-color: #f8fafc !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; }
+
+/* Days tags */
+.kanban-plugin__item a.tag[href$="d"] { background-color: #f1f5f9 !important; color: #64748b !important; border: 1px solid #e2e8f0 !important; font-weight: 500 !important; }
+
+/* Internal links */
 .kanban-plugin__item a.internal-link {
-  font-size: 0.75rem;
-  font-weight: 600;
-  background-color: rgba(0, 0, 0, 0.07);
-  color: #334155 !important;
-  padding: 2px 7px;
-  border-radius: 6px;
-  text-decoration: none;
-  display: inline-block;
-  margin-top: 6px;
-  transition: background-color 0.15s ease;
-}
-
-.kanban-plugin__item a.internal-link:hover {
-  background-color: rgba(0, 0, 0, 0.14);
-}
-
-.kanban-plugin__item-tag {
-  font-size: 0.72rem;
-  font-weight: 600;
-  border-radius: 9999px;
-  padding: 2px 8px;
-  margin: 4px 4px 2px 0;
-  display: inline-block;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  font-size: 0.65rem !important;
+  font-weight: 600 !important;
+  background-color: rgba(15, 23, 42, 0.05) !important;
+  color: #475569 !important;
+  padding: 1.5px 6px !important;
+  border-radius: 4px !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+  margin: 3px 2px 1px 0 !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  white-space: nowrap !important;
 }

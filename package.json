@@ -19,7 +19,10 @@
     "vite": "vite",
     "typecheck": "react-router typegen && tsc --noEmit",
     "kanban": "node scripts/sync-kanban.js && vibe-kanban",
-    "kanban:sync": "node scripts/sync-kanban.js"
+    "kanban:sync": "node scripts/sync-kanban.js",
+    "stripe:listen": "powershell -ExecutionPolicy Bypass -File scripts/stripe-listen.ps1",
+    "stripe:login": "stripe login",
+    "stripe:trigger": "stripe trigger"
   },
   "type": "module",
   "engines": {

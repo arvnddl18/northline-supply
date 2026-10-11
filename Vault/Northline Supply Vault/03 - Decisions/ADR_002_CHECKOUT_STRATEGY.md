@@ -25,13 +25,19 @@ Shopify checkout does not allow a normal third-party app to serve as an arbitrar
   - Requires policy compliance checks if ever released as a public app.
 
 ## Decision
-**Adopt Option B (Stripe-First Checkout)** as the primary architecture for this custom app.
-- Emma explicitly requires automated installment charging and subscriptions through Stripe.
-- Saved cards are an absolute prerequisite for automated scheduled collections.
-- **Fallback provision**: If time or policy constraints require a fast MVP demo, Option A can be demonstrated as an interim fallback while Option B completes end-to-end testing.
+**Adopt Option B (Stripe-First Checkout)** as the primary architecture for this custom app, with Option A as emergency fallback.
+
+Key architectural determinations agreed in Sprint 0 (S0-T1):
+1. **Primary Gateway**: Option B via Shopify App Proxy (`/proxy/checkout`) creating a Stripe Checkout Session with `setup_future_usage: 'off_session'`.
+2. **Shipping & Taxes**: Defer to final balance payment. The upfront Stripe checkout charges only the product deposit (e.g. 30%), avoiding complex pre-order cart draft order calculations upfront. Exact Shopify shipping and taxes are attached to the balance invoice when goods are ready for dispatch.
+3. **Order Initialization**: Upon receiving Stripe's `checkout.session.completed` webhook, create the Shopify Order via Admin GraphQL API with financial status `PARTIALLY_PAID`, an initial transaction for the deposit amount, and tags `deposit-paid`, `balance-due`.
+4. **Balance Collection Mechanism**: Hybrid model—default to an estimated completion date (e.g., 30 days) with automated 7-day reminder emails/links, plus a manual "Request Balance Now" button in Emma's Polaris admin if ceramics are finished early.
+5. **Cancellation & Deposit Policy**: Clearly state at checkout that deposits are non-refundable once production begins (standard for handmade made-to-order craft), while preserving Emma's ability to issue discretionary full or partial refunds directly from the embedded admin.
+6. **Fallback Provision**: If Shopify API policy constraints or sandboxing delay order creation during Sprint 1 testing, Option A (deposit variant) will serve as interim fallback.
 
 ## Status
-Accepted
+Accepted & Confirmed
 
 ## Date
 2026-10-11
+
