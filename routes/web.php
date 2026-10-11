@@ -1,18 +1,16 @@
 <?php
 
+use App\Http\Controllers\Admin\EmbeddedAdminController;
 use App\Http\Controllers\Auth\ShopifyAuthController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\Webhooks\ShopifyWebhookController;
+use App\Http\Middleware\ShopifyIframeMiddleware;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return response()->json([
-        'app' => config('app.name'),
-        'status' => 'online',
-        'version' => '1.0.0',
-        'client' => 'Northwind Ceramics',
-    ]);
-});
+// Embedded Admin Shell (S1-T3)
+Route::get('/', [EmbeddedAdminController::class, 'index'])
+    ->middleware(ShopifyIframeMiddleware::class)
+    ->name('home');
 
 Route::get('/health', HealthController::class);
 

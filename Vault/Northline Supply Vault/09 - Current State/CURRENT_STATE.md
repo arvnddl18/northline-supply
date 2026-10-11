@@ -77,18 +77,22 @@
   - Decision recorded in [[ADR_003_LARAVEL_DOCKER_STACK]]; completed work documented in [[S0_T3_REPOSITORY_DOCKER_STACK]].
 
 ## In Progress
-- None.
+- **S1-T3**: Embedded admin shell (App Bridge v4, session tokens, Polaris layout, navigation).
 
 ## Blocked
 - None.
 
 ## Next Logical Tasks
-1. Transition to Sprint 1 execution (`S1-T1`: Core migrations, `S1-T3`: Embedded admin shell, `S1-T4`: Stripe connection).
+1. Complete S1-T3 embedded admin shell implementation and verification.
+2. Advance to S1-T4: Stripe connection.
 
 ## Development Kanban
-- Living board: [[DEVELOPMENT_KANBAN]] (synced from [[IMPLEMENTATION_PLAN]])
-- Pinned visual guide with priority hierarchy (`#p0-must`, `#p1-should`, `#p2-could`), work type indicators (`#decision` vs `#dev`), sprint roadmap, and balanced 22px column breathing room.
-- Live Sync: Automated reactive daemon (`npm run kanban:watch`) listening to `CURRENT_STATE.md` and `IMPLEMENTATION_PLAN.md` for live-speed updates without dependencies.
+- Living board: [Northwind Ceramics — Development Board (Notion)](https://app.notion.com/p/3f64a48ac6c98056ae2be7af1bf1ff31)
+- Database ID: `3f64a48a-c6c9-8056-ae2b-e7af1bf1ff31`
+- Parent Page: [To Do List](https://app.notion.com/p/To-Do-List-3f64a48ac6c9800aaaeeee87f7f255be)
+- Buddy Mode: Antigravity Development Buddy Mode active (`Section 37`).
+- Historical Snapshot: [[DEVELOPMENT_KANBAN]] preserved as markdown baseline.
 
 ## Last Updated
 2026-10-12
+

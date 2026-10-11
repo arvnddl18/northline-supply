@@ -20,7 +20,7 @@ Please verify each item before merging:
 - [ ] **Staging Verification**: Deployed to staging VPS and verified manually.
 - [ ] **Payment & Webhook Idempotency**: Payment operations and webhooks include idempotency keys/tests (if applicable).
 - [ ] **Secrets & Security**: No credentials, tokens, API keys, or raw card PAN/CVVs in repository, logs, or Docker image (PCI SAQ-A).
-- [ ] **Obsidian Memory & Specs**: Decision notes, task status, and relevant specs updated in the Obsidian Vault (`CURRENT_STATE.md`, `DEVELOPMENT_KANBAN.md`, `08 - Completed Work`).
+- [ ] **Obsidian Memory & Notion Board**: Decision notes, task status, and relevant specs updated (`CURRENT_STATE.md`, Notion card marked Done via MCP, `08 - Completed Work`).
 - [ ] **Demonstration Ready**: Ready to demonstrate to client (Emma Carter) at the weekly sprint check-in.
 
 ---

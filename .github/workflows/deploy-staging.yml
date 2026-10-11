@@ -51,6 +51,15 @@ jobs:
             docker compose -f docker-compose.staging.yml exec -T app php artisan queue:restart
 
             echo "=== [6/6] Verifying application health endpoint ==="
-            # shortcut: probes local container endpoint; upgrade to public domain curl once DNS is delegated
-            docker compose -f docker-compose.staging.yml exec -T app curl -fsS http://localhost/up
+            docker compose -f docker-compose.staging.yml exec -T app curl -fsS http://localhost/health
+
+            # shortcut: Placeholder for Sentry release tracking; activate when SENTRY_AUTH_TOKEN is configured in secrets
+            echo "=== [Placeholder] Sentry Release Notification ==="
+            echo "Release tracking will record deployment for commit: $GITHUB_SHA"
+
+            # shortcut: Placeholder for automated Stripe webhook listener verification (Sprint 3)
+            echo "=== [Placeholder] Stripe Webhook Ping ==="
+            echo "Webhook listener verification will probe Stripe test webhook receiver once endpoints are exposed."
+
             echo "Staging deployment completed successfully for commit $GITHUB_SHA!"
+

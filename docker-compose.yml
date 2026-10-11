@@ -22,6 +22,9 @@ services:
         condition: service_healthy
 
   worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: northwind-payment-app:latest
     container_name: northwind-payment-worker
     restart: unless-stopped
@@ -42,6 +45,9 @@ services:
         condition: service_healthy
 
   scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: northwind-payment-app:latest
     container_name: northwind-payment-scheduler
     restart: unless-stopped

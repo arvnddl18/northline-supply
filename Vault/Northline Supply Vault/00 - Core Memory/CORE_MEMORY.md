@@ -52,6 +52,15 @@
 ## Active Problems
 - None active.
 
+## Kanban Board
+- Notion database name: Northwind Ceramics — Development Board
+- Notion database URL: https://app.notion.com/p/3f64a48ac6c98056ae2be7af1bf1ff31
+- Notion database ID: 3f64a48a-c6c9-8056-ae2b-e7af1bf1ff31
+- Parent page ID: 3f64a48a-c6c9-800a-aaee-ee87f7f255be (To Do List)
+- Last board sync: 2026-10-12
+- Current sprint: Sprint 1
+
+
 ## Spec References
 - PRD: [[PRD]] — Active / v1.0
 - TRD: [[TRD]] — Active / v1.0
@@ -68,6 +77,7 @@
 - [[BACKLOG_RULES]]
 - [[CURRENT_STATE]]
 - [[DEVELOPMENT_KANBAN]]
+- [[ADR_004_NOTION_MCP_KANBAN]]
 - [[CHECKOUT_CHOICE_EMMA_NOTE]]
 - [[STRIPE_AND_SHOPIFY_SETUP]]
 - [[UPTIME_KUMA_SETUP]]

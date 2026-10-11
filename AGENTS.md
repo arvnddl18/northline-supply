@@ -10,7 +10,7 @@ Use the [Shopify AI Toolkit](https://shopify.dev/docs/apps/build/ai-toolkit) for
 
 ### 1. Living Specifications & Obsidian Memory
 - The external Obsidian vault located at `Vault/Northline Supply Vault` is the authoritative persistent memory layer and living specification repository (`11 - Specs/`).
-- Follow the `/obsidian-memory` protocol: check specs before coding, record decisions in `03 - Decisions/`, update `09 - Current State/CURRENT_STATE.md`, and sync `DEVELOPMENT_KANBAN.md` on task completion.
+- Follow the `/obsidian-memory` protocol: check specs before coding, record decisions in `03 - Decisions/`, update `09 - Current State/CURRENT_STATE.md`, and synchronize the Notion Kanban board via Notion MCP on task completion.
 - Source code remains the authoritative record of actual reality; specs describe intent. Report drift and confirm with the user before altering baseline specs.
 
 ### 2. Engineering Standards (Ponytail Principles)
@@ -24,7 +24,7 @@ Use the [Shopify AI Toolkit](https://shopify.dev/docs/apps/build/ai-toolkit) for
 - Follow `Vault/Northline Supply Vault/05 - User Preferences/BACKLOG_RULES.md`.
 - **WIP Limit**: Strictly 1 task in `In Progress` at any time for the solo developer.
 - Priority tag hierarchy: `#p0-must` > `#p1-should` > `#p2-could`.
-- After completing any task, run `node scripts/sync-kanban.js` (or `npm run kanban:sync`) to synchronize the live board.
+- Track development live on the Notion Kanban board using Notion MCP tools (`Section 37`).
 
 ### 4. Definition of Done (DoD)
 Every pull request and completed task must satisfy the 7-point DoD:
@@ -33,5 +33,5 @@ Every pull request and completed task must satisfy the 7-point DoD:
 3. **Staging Verification**: Deployed and manually verified on staging.
 4. **Idempotency**: Webhook and payment code verified with idempotency keys and tests.
 5. **Security & Privacy**: Zero raw card PAN/CVVs (PCI SAQ-A scope), encrypted tokens at rest, zero secrets in repo or images.
-6. **Obsidian Memory**: Decisions and completed work documented; `CURRENT_STATE.md` updated.
+6. **Obsidian Memory & Notion Board**: Decisions and completed work documented; `CURRENT_STATE.md` updated; Notion card marked Done.
 7. **Demonstration Ready**: Ready to demo to Emma Carter at weekly check-in.

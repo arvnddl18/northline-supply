@@ -194,6 +194,9 @@
   },
   "active": "e47943b55ec0f591",
   "lastOpenFiles": [
+    "03 - Decisions/ADR_005_EMBEDDED_ADMIN_SHELL_ARCHITECTURE.md",
+    "03 - Decisions/ADR_004_NOTION_MCP_KANBAN.md",
+    "10 - Temporary/NOTION_SYNC_QUEUE.md",
     "08 - Completed Work/S1_T1_CORE_MIGRATIONS.md",
     "08 - Completed Work/S0_T3_REPOSITORY_DOCKER_STACK.md",
     "08 - Completed Work/S0_T6_MONITORING_AND_LOGGING.md",

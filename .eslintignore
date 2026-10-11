@@ -5,5 +5,11 @@ public/build
 */*.yml
 .shopify
 Vault
+Northline Supply Vault
+legacy-node-scaffold
 .agents
+.gemini
+.cursor
+
+
 

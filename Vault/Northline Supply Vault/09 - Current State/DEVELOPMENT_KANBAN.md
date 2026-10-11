@@ -41,7 +41,6 @@ kanban-plugin: board
 
 ## Todo
 
-- [ ] **S1-T3**: Embedded admin shell #p0-must #dev #sprint1 #1.5d
 - [ ] **S1-T4**: Stripe connection #p0-must #dev #sprint1 #1.0d
 - [ ] **S1-T5**: Plans API and screens #p0-must #dev #sprint1 #2.0d
 - [ ] **S1-T6**: Deposit calculation service #p0-must #dev #sprint1 #0.5d
@@ -50,7 +49,7 @@ kanban-plugin: board
 
 ## In Progress
 
-
+- [ ] **S1-T3**: Embedded admin shell #p0-must #dev #sprint1 #1.5d
 
 ## Done
 

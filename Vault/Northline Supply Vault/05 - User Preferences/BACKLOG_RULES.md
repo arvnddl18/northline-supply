@@ -11,17 +11,17 @@
 
 1. **Single Developer Reality**: One developer is building this 50-day project. Overhead must be near zero.
 2. **Work is Never Hidden**: Work that is not done rolls forward to the next sprint and is immediately flagged to Emma Carter.
-3. **Living Memory Board**: The primary task board lives in [[DEVELOPMENT_KANBAN]] and is automatically synchronized from [[IMPLEMENTATION_PLAN]] and [[CURRENT_STATE]].
+3. **Notion Kanban Board (via Notion MCP)**: The primary live task board lives in Notion, accessed directly through the Notion MCP server (see Section 37 of the memory protocol and [[ADR_004_NOTION_MCP_KANBAN]]). `DEVELOPMENT_KANBAN.md` is preserved as an optional markdown snapshot.
 
 ---
 
 ## 2. Work In Progress (WIP) Limits
 
-- **WIP Limit = 1**: The developer may have **at most 1 task** in the `In Progress` column at any time.
+- **WIP Limit = 1**: The developer may have **at most 1 task** in the `In Progress` column at any time (hard ceiling of 3 across the entire project).
 - Context switching between incomplete tasks is prohibited. If an active task becomes blocked by external dependencies (e.g. Shopify Partner review or Stripe account approval):
-  1. Move the task to a designated blocked status in [[CURRENT_STATE]].
-  2. Document the blocker clearly under `## Blocked`.
-  3. Pull the next highest-priority `#p0-must` task from `Todo`.
+  1. Move the card to `Blocked` in Notion via Notion MCP and fill in `Blocked Reason`.
+  2. Document the blocker under `## Blocked` in [[CURRENT_STATE]].
+  3. Pull the next highest-priority `#p0-must` task from `Ready`/`Todo`.
 
 ---
 
@@ -64,10 +64,10 @@ No task may be marked complete or moved into `## Done` without satisfying all 7 
 3. **Staging Verification**: Deployed to VPS staging environment and manually verified.
 4. **Idempotency Gating**: Every payment trigger or webhook receiver must prove idempotency with an automated test.
 5. **Zero Secrets / PCI SAQ-A**: No credentials in code/logs/Docker images; zero raw credit card handling.
-6. **Obsidian Memory Synchronization**:
+6. **Obsidian Memory & Notion Board Synchronization**:
    - Create completion record in `08 - Completed Work/<TASK_ID>_<NAME>.md`.
    - Update `09 - Current State/CURRENT_STATE.md`.
-   - Run `node scripts/sync-kanban.js` to update [[DEVELOPMENT_KANBAN]].
+   - Update the task card on the Notion Kanban board to `Done` (setting `Completed` date) via Notion MCP.
 7. **Client Demo Ready**: Feature demonstrated or prepared for weekly demo with Emma.
 
 ---
@@ -94,9 +94,12 @@ If unexpected delays or blockers threaten the 10-week schedule, scope is reduced
 
 ---
 
-## 7. Synchronization Tooling
+## 7. Synchronization Tooling & Notion MCP
 
-- **Automated Sync**:  
-  `node scripts/sync-kanban.js` (or `npm run kanban:sync`) reads [[IMPLEMENTATION_PLAN]] and [[CURRENT_STATE]] to refresh column placement, tags, and links on [[DEVELOPMENT_KANBAN]].
-- **Live Watch Daemon**:  
-  `npm run kanban:watch` monitors vault edits in real time and automatically updates board state.
+- **Notion Kanban Integration**:
+  The developer/agent interacts with the Notion Kanban board directly using Notion MCP tools (`Section 37`).
+- **Markdown Snapshot Backup**:
+  `node scripts/sync-kanban.js` (or `npm run kanban:sync`) can still be run to generate a static Markdown snapshot in [[DEVELOPMENT_KANBAN]].
+- **Offline Sync Queue**:
+  If the Notion MCP is unavailable, pending changes are buffered in `10 - Temporary/NOTION_SYNC_QUEUE.md` and replayed once the connection is restored.
+

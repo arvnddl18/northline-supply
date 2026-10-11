@@ -9,6 +9,11 @@
       "type": "stdio",
       "command": "npx",
       "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "notion": {
+      "type": "stdio",
+      "command": "cmd.exe",
+      "args": ["/c", "npx", "-y", "notion-mcp-server"]
     }
   }
 }
