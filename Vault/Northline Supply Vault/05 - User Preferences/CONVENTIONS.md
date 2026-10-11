@@ -27,7 +27,16 @@
 - Document any pragmatic shortcuts as `shortcut: <the limit>, <when to upgrade>`.
 - Non-trivial logic must include automated tests or assert-based self-checks.
 
+## Backlog Operating Rules & Board Hygiene
+- Strictly adhere to [[BACKLOG_RULES]]:
+  - **WIP Limit = 1**: At most one active task in `In Progress` at any time.
+  - Standardized priority tags (`#p0-must`, `#p1-should`, `#p2-could`).
+  - Gating DoD criteria strictly required before advancing to `Done`.
+  - Non-negotiable scope reduction protocol for deadline protection.
+  - Automated board sync via `node scripts/sync-kanban.js`.
+
 ## Definition of Done (Client Agreement)
+Enforced in all development and verified via `.github/pull_request_template.md`:
 - Code is reviewed in a pull request, even when working as the sole developer.
 - All tests pass in CI.
 - The change is deployed to staging and verified manually.
@@ -40,4 +49,5 @@
 - **Sprint Start**: 1 hour to confirm scope and tasks.
 - **Weekly Check-in with Emma**: 30 minutes (short written update sent before call).
 - **Sprint End**: Demo on staging, followed by a short retro to document blockers.
+
 
