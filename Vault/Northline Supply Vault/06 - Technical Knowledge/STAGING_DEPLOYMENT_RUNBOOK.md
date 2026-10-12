@@ -37,24 +37,25 @@ The staging environment for Northwind Ceramics Payment App runs on an Ubuntu VPS
 ## 3. GitHub Actions CI/CD Pipeline
 File: `.github/workflows/deploy-staging.yml`
 
-### Required GitHub Repository Secrets
-To enable the automated deployment pipeline, add the following secrets in **GitHub > Settings > Secrets and variables > Actions**:
+### Required GitHub Secrets & Variables
+To enable automated deployments, configure the following secrets under **GitHub > Settings > Secrets and variables > Actions** (either as Repository Secrets or inside the `staging` Environment):
 
-| Secret Name | Value Description | Example |
-|---|---|---|
-| `STAGING_HOST` | IPv4 or domain address of the VPS | `192.0.2.1` or `vps.northwindceramics.com` |
-| `STAGING_USER` | Deploy user on the VPS (with Docker access) | `deploy` or `ubuntu` |
-| `STAGING_SSH_KEY` | Ed25519 or RSA private SSH key | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
-| `STAGING_PORT` | SSH port (optional, defaults to 22) | `22` |
-| `STAGING_PATH` | Full directory path to the repo on the VPS | `/var/www/northwind` |
+| Secret / Variable Name | Type | Value Description | Example |
+|---|---|---|---|
+| `STAGING_HOST` | Secret (Required) | IPv4 or domain address of the VPS | `192.0.2.1` or `vps.northwindceramics.com` |
+| `STAGING_USER` | Secret (Required) | Deploy user on VPS (member of `docker` group) | `deploy` or `ubuntu` |
+| `STAGING_SSH_KEY` | Secret (Required) | Ed25519 or RSA private SSH key | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
+| `STAGING_PORT` | Secret (Optional) | SSH port (defaults to 22) | `22` |
+| `STAGING_PATH` | Secret (Optional) | Full deployment path on VPS (defaults to `/var/www/northwind`) | `/var/www/northwind` |
+| `STAGING_DOMAIN` | Variable (Optional) | Domain name mapped to staging Caddy proxy | `staging.northwindceramics.com.au` |
 
 ---
 
 ## 4. First-Time VPS Bootstrap Guide
 
-### Step 1: Install Docker & Docker Compose v2 on Ubuntu VPS
+### Step 1: Install Docker on Ubuntu VPS
 ```bash
-sudo apt update && sudo apt install -y curl git ufw
+sudo apt update && sudo apt install -y curl ufw
 curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
 sudo usermod -aG docker $USER
 newgrp docker
@@ -68,58 +69,55 @@ sudo ufw allow 443/tcp
 sudo ufw enable
 ```
 
-### Step 3: Clone Repository on VPS
+### Step 3: Create Application Directory on VPS
 ```bash
 sudo mkdir -p /var/www/northwind
 sudo chown -R $USER:$USER /var/www/northwind
-git clone https://github.com/northline-supply/northline-supply.git /var/www/northwind
 cd /var/www/northwind
 ```
 
 ### Step 4: Configure Persistent Staging `.env`
 ```bash
-cp .env.example .env
-nano .env
+nano /var/www/northwind/.env
 ```
 Ensure the following are set for staging:
 - `APP_ENV=staging`
 - `APP_DEBUG=false`
-- `APP_URL=https://staging.northwindceramics.com.au` (or your staging domain)
+- `APP_KEY=base64:...` (Generate with `docker run --rm northwind-payment-app:staging php artisan key:generate --show` or local artisan)
+- `APP_URL=https://staging.northwindceramics.com.au`
 - `STAGING_DOMAIN=staging.northwindceramics.com.au`
 - `ACME_EMAIL=admin@northwindceramics.com.au`
 - Populate `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET`, `STRIPE_KEY`, `STRIPE_SECRET`, and database passwords.
 
-### Step 5: Start the Staging Stack Manually
-```bash
-bash scripts/deploy-staging.sh
-```
-
 ---
 
-## 5. Deployment Step Breakdown (Automated on Merge)
-Every push to `main` executes the 6-stage deployment sequence:
-1. **Fetch & Reset**: `git fetch origin main && git reset --hard origin/main`
-2. **Pull & Up**: `docker compose -f docker-compose.staging.yml up -d --remove-orphans`
-3. **Database Migration**: `docker compose -f docker-compose.staging.yml exec -T app php artisan migrate --force`
-4. **Cache Warmup**: `config:cache` and `route:cache`
-5. **Worker Restart**: `php artisan queue:restart`
-6. **Health Verification**: Probe `curl -fsS http://localhost/up` verifying HTTP 200.
+## 5. Deployment Step Breakdown (Automated on CI Success or Manual Dispatch)
+Every merge to `main` (or manual `workflow_dispatch` trigger) executes the automated sequence:
+1. **Pre-flight Validation**: Verifies that required secrets (`STAGING_HOST`, `STAGING_USER`, `STAGING_SSH_KEY`) exist with actionable error reporting if unset.
+2. **Directory Bootstrapping**: Runner runs SSH command `mkdir -p $APP_DIR/docker $APP_DIR/scripts`.
+3. **Artifact Sync via SCP**: Copies tested `docker/Caddyfile` and `scripts/deploy-staging.sh` directly from CI runner to VPS (VPS needs **zero git credentials**).
+4. **GHCR Authentication**: Injects runner `GITHUB_TOKEN` into remote `docker login ghcr.io -u $ACTOR --password-stdin` to pull private packages safely.
+5. **Pure Docker Deploy**: Executes `scripts/deploy-staging.sh` with target image:
+   - Runs database migrations via temporary container (`php artisan migrate --force`). Old release stays active if migrations fail.
+   - Replaces web, worker, and scheduler containers with zero downtime.
+   - Updates Caddy proxy configuration and validates HTTPS.
+   - Probes `/health` endpoint (database PDO, Redis ping, queue depth).
+6. **External Health Probe**: Runner validates public healthcheck status via `curl -fsS https://$DOMAIN/health`.
 
 ---
 
 ## 6. Verification and Troubleshooting
+- **Check Running Containers**:
+  ```bash
+  docker ps --filter name=northwind-staging
+  ```
 - **Check Caddy Certificates & Logs**:
   ```bash
-  docker compose -f docker-compose.staging.yml logs caddy -f
+  docker logs -f northwind-staging-caddy
   ```
 - **Check Application Healthcheck**:
   ```bash
-  curl -i https://staging.northwindceramics.com.au/up
+  docker exec northwind-staging-web curl -fsS http://localhost/health
   ```
-  Expected output: HTTP 200 with OK.
 - **Rollback Procedure**:
-  If a release fails healthcheck or exhibits critical regressions:
-  ```bash
-  git checkout <previous_known_good_commit_sha>
-  bash scripts/deploy-staging.sh
-  ```
+  Trigger GitHub Actions `Deploy Staging` with `workflow_dispatch` specifying the previous known good Docker image tag (e.g., `sha-a1256b7`).

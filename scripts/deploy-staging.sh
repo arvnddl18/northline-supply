@@ -13,7 +13,8 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 ROOT_DIR="$(pwd)"
 
 if [ ! -f .env ]; then
-    echo "Error: .env file missing in $ROOT_DIR. Please create it before deploying."
+    echo "Error: .env file missing in $ROOT_DIR. Please create $ROOT_DIR/.env with staging credentials before deploying."
+    echo "Run: cp .env.example .env && php artisan key:generate"
     exit 1
 fi
 
@@ -30,9 +31,15 @@ ACME="$(env_get ACME_EMAIL)"; ACME="${ACME:-admin@northwindceramics.com.au}"
 
 echo "--> [1/6] Resolving application image: $IMAGE"
 if [ -z "${DOCKER_IMAGE:-}" ]; then
+    echo "No DOCKER_IMAGE provided; building image locally..."
     docker build -t "$IMAGE" .
-elif ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
-    docker pull "$IMAGE" || (echo "Notice: Could not pull $IMAGE from registry, building locally..." && docker build -t "$IMAGE" .)
+elif [[ "$IMAGE" =~ :latest$ ]] || ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+    echo "Pulling $IMAGE from container registry..."
+    if ! docker pull "$IMAGE"; then
+        echo "Error: Failed to pull $IMAGE from container registry."
+        echo "Ensure the VPS docker daemon is authenticated to ghcr.io (e.g., via 'docker login ghcr.io') or the image tag exists."
+        exit 1
+    fi
 fi
 
 docker network inspect "$NETWORK" >/dev/null 2>&1 || docker network create "$NETWORK" >/dev/null

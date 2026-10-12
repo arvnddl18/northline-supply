@@ -217,7 +217,16 @@
   - Replaced test Visa PAN in `tests/Feature/HealthCheckTest.php` with `tok_test_card`, fulfilling PCI SAQ-A zero raw card PAN requirement.
   - Corrected POSIX ERE syntax in `ci.yml` secret scanning step and excluded benchmark JSON and `.agents` artifacts to eliminate false positives and regex syntax errors.
   - Hardened Docker smoke test image parsing and `APP_KEY` sed replacement against multiline output and delimiter collisions.
-  - Added explicit `permissions: contents: read`, normalized repository casing to lowercase for GHCR compliance, and updated `appleboy/ssh-action` to `v1.2.0` in `deploy-staging.yml`.
+
+- **Continuous Deployment (CD) Pipeline Remade & Hardened ([[ADR_009_REMAKE_CD_PIPELINE]])**:
+  - **Root Cause Diagnosed**: Diagnosed the 8–9s workflow failure on `deploy-staging.yml`: GitHub Actions boolean coercion of `${{ secrets.STAGING_PORT || 22 }}` returned literal string `"true"` crashing `appleboy/ssh-action` Go integer parsing, unvalidated secrets led to instant crashes, missing `environment: staging` prevented access to Environment Secrets, unauthenticated remote git calls failed on VPS, and private GHCR pull lacked credentials.
+  - **Pre-Flight Secrets Validation**: Implemented explicit pre-flight check in `deploy-staging.yml` verifying `STAGING_HOST`, `STAGING_USER`, and `STAGING_SSH_KEY` with clear `::error::` annotations directing users to GitHub Settings.
+  - **GitHub Environment & URL Tracking**: Bound deployment jobs to `environment: staging` exposing environment variables and tracking URL (`https://${{ vars.STAGING_DOMAIN || 'staging.northwindceramics.com.au' }}`) on GitHub Releases/PRs.
+  - **Native OpenSSH Automation**: Replaced third-party action with standard `webfactory/ssh-agent@v0.9.0` and native OpenSSH (`ssh` / `scp`), removing external Go dependency bloat.
+  - **Decoupled Artifact Sync via SCP**: Automatically copies `docker/Caddyfile` and `scripts/deploy-staging.sh` directly from the runner to the VPS, eliminating git credential and clone requirements on the remote server.
+  - **Authenticated Private GHCR Pulls**: Remotely authenticates VPS Docker to `ghcr.io` using runner's ephemeral `GITHUB_TOKEN`.
+  - **Hardened Deploy Script**: Updated `scripts/deploy-staging.sh` to prevent VPS RAM exhaustion from local build fallbacks and provide clear diagnostic instructions when `.env` is unconfigured.
+  - **Documented**: Created [[ADR_009_REMAKE_CD_PIPELINE]] and synchronized [[STAGING_DEPLOYMENT_RUNBOOK]].
 
 - **End-to-End System Polish & Seamless Flow Verification Completed (100% Verified)**:
   - Default `database/seeders/DatabaseSeeder.php` established, allowing one-command `php artisan db:seed` and `npm run stack:migrate` initialization.
