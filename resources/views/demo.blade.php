@@ -60,7 +60,7 @@
                     <span class="health-pulse health-sage"></span>
                     <span>
                         <strong>Local database</strong>
-                        <small>{{ $stats['orders'] ?? 12 }} orders · {{ $stats['plans'] ?? 2 }} plans · {{ $stats['customers'] ?? 4 }} customers</small>
+                        <small>{{ $stats['orders'] ?? 6 }} orders · {{ $stats['subscriptions'] ?? 3 }} memberships · {{ $stats['plans'] ?? 4 }} plans</small>
                     </span>
                 </div>
                 <div>

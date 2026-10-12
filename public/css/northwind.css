@@ -710,7 +710,8 @@ button { color: inherit; }
 .choice-card { position: relative; display: flex; align-items: center; gap: 9px; min-height: 51px; padding: 8px 10px; border: 1px solid #e9e2dc; border-radius: 6px; background: #fffefd; cursor: pointer; transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease; }
 .choice-card:hover { border-color: #d5b8a7; }
 .choice-card-selected { border-color: #c98b6b; background: #fcf4ef; box-shadow: inset 0 0 0 1px rgba(196,98,56,.15); }
-.choice-card > input, .sim-choice > input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.choice-card > input, .sim-choice > input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2; margin: 0; }
+.choice-radio, .choice-main, .choice-amount { pointer-events: none; }
 .choice-radio { position: relative; display: inline-block; width: 16px; height: 16px; flex: 0 0 auto; border: 1.4px solid #c5b8ae; border-radius: 50%; background: white; }
 .choice-card input:checked + .choice-radio, .sim-choice input:checked + .choice-radio { border-color: var(--terracotta); }
 .choice-card input:checked + .choice-radio::after, .sim-choice input:checked + .choice-radio::after { position: absolute; inset: 3px; border-radius: 50%; background: var(--terracotta); content: ''; }

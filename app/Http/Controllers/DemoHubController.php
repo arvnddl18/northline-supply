@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\PaymentSchedule;
 use App\Models\Plan;
 use App\Models\Shop;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Illuminate\View\View;
@@ -28,6 +29,7 @@ class DemoHubController extends Controller
             'plans' => Plan::count(),
             'customers' => Customer::count(),
             'schedules' => PaymentSchedule::count(),
+            'subscriptions' => Subscription::count(),
         ];
 
         $signedPortalUrl = $customer

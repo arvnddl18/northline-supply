@@ -10,6 +10,7 @@ use App\Models\PaymentSchedule;
 use App\Models\Plan;
 use App\Models\Refund;
 use App\Models\Shop;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -363,6 +364,87 @@ class Sprint3DemoSeeder extends Seeder
                 'meta' => ['amount' => 7500, 'stripe_refund_id' => 're_demo_order4_full'],
                 'user_id' => $owner->id,
                 'created_at' => now()->subDays(14),
+            ]
+        );
+
+        // 12. Ceramic Club Subscription Plans & Demo Subscriptions (S5-T1..T3)
+        $subPlanWheel = Plan::firstOrCreate(
+            ['shop_id' => $shop->id, 'name' => 'Ceramic Club — Wheel Throwing Tier'],
+            [
+                'shop_id' => $shop->id,
+                'name' => 'Ceramic Club — Wheel Throwing Tier',
+                'type' => 'subscription',
+                'deposit_type' => 'fixed',
+                'deposit_value' => 6500, // $65.00 AUD/month
+                'interval' => 'month',
+                'interval_count' => 1,
+                'active' => true,
+            ]
+        );
+
+        $subPlanGlaze = Plan::firstOrCreate(
+            ['shop_id' => $shop->id, 'name' => 'Ceramic Club — Glaze Master Tier'],
+            [
+                'shop_id' => $shop->id,
+                'name' => 'Ceramic Club — Glaze Master Tier',
+                'type' => 'subscription',
+                'deposit_type' => 'fixed',
+                'deposit_value' => 9500, // $95.00 AUD/month
+                'interval' => 'month',
+                'interval_count' => 1,
+                'active' => true,
+            ]
+        );
+
+        $subPlanGuild = Plan::firstOrCreate(
+            ['shop_id' => $shop->id, 'name' => "Ceramic Club — Collector's Guild Tier"],
+            [
+                'shop_id' => $shop->id,
+                'name' => "Ceramic Club — Collector's Guild Tier",
+                'type' => 'subscription',
+                'deposit_type' => 'fixed',
+                'deposit_value' => 14500, // $145.00 AUD/month
+                'interval' => 'month',
+                'interval_count' => 1,
+                'active' => true,
+            ]
+        );
+
+        // Seed active subscriptions for Clara and Marcus, and paused for Elena
+        Subscription::firstOrCreate(
+            ['shop_id' => $shop->id, 'stripe_subscription_id' => 'sub_demo_clara_wheel'],
+            [
+                'shop_id' => $shop->id,
+                'customer_id' => $customers['clara']->id,
+                'plan_id' => $subPlanWheel->id,
+                'stripe_subscription_id' => 'sub_demo_clara_wheel',
+                'status' => Subscription::STATUS_ACTIVE,
+                'next_renewal_at' => now()->addDays(18),
+            ]
+        );
+
+        Subscription::firstOrCreate(
+            ['shop_id' => $shop->id, 'stripe_subscription_id' => 'sub_demo_marcus_glaze'],
+            [
+                'shop_id' => $shop->id,
+                'customer_id' => $customers['marcus']->id,
+                'plan_id' => $subPlanGlaze->id,
+                'stripe_subscription_id' => 'sub_demo_marcus_glaze',
+                'status' => Subscription::STATUS_ACTIVE,
+                'next_renewal_at' => now()->addDays(24),
+            ]
+        );
+
+        Subscription::firstOrCreate(
+            ['shop_id' => $shop->id, 'stripe_subscription_id' => 'sub_demo_elena_paused'],
+            [
+                'shop_id' => $shop->id,
+                'customer_id' => $customers['elena']->id,
+                'plan_id' => $subPlanWheel->id,
+                'stripe_subscription_id' => 'sub_demo_elena_paused',
+                'status' => Subscription::STATUS_PAUSED,
+                'paused_until' => now()->addDays(45),
+                'next_renewal_at' => now()->addDays(45),
             ]
         );
     }
