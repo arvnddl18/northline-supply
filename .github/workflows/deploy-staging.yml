@@ -13,6 +13,9 @@ concurrency:
   group: staging-deploy
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy to Staging VPS (Pure Docker)
@@ -31,13 +34,14 @@ jobs:
             TARGET_SHA="${GITHUB_SHA}"
           fi
           SHORT_SHA="${TARGET_SHA:0:7}"
-          IMAGE="ghcr.io/${{ github.repository }}:sha-${SHORT_SHA}"
+          REPO_LOWER="$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')"
+          IMAGE="ghcr.io/${REPO_LOWER}:sha-${SHORT_SHA}"
           echo "target_image=${IMAGE}" >> "$GITHUB_OUTPUT"
           echo "target_sha=${TARGET_SHA}" >> "$GITHUB_OUTPUT"
           echo "Deploy target image: ${IMAGE}"
 
       - name: Deploy via SSH to VPS
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}

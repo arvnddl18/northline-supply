@@ -207,7 +207,17 @@
   - Pure Docker containers running locally on port 8000 (`northwind-payment-web`, `worker`, `scheduler`, `postgres`, `redis`).
   - Added cryptographic `generateSessionToken` helper to `ShopifyOAuthService` for local dev mode, allowing direct browser inspection of the Polaris embedded admin without 401 token errors.
   - Interactive Testing Hub created at `http://localhost:8000/demo` linking directly to all 4 core user flows (Merchant Admin, Storefront PDP Deposit Widget Simulator, Customer Portal, Balance Settlement & Card Update).
-  - All 128 automated feature & unit tests passing (100% green). Frontend ESLint and TypeScript checks green.
+  - Root route (`GET /`) now automatically redirects browser visitors without a `?shop` parameter to the `/demo` landing page, while preserving JSON responses for API/health requests.
+  - All 129 automated feature & unit tests passing (100% green). Frontend ESLint and TypeScript checks green.
+
+- **CI/CD Pipeline Hardening & Resolution**:
+  - Fixed `ci.yml` PHP setup action reference from invalid `actions/setup-php@v2` to official `shivammathur/setup-php@v2` (resolves GitHub Actions runner failure "Unable to resolve action actions/setup-php, not found").
+  - Updated Composer cache key in `ci.yml` to hash `composer.lock` instead of `composer.json` for deterministic dependency caching.
+  - Reordered environment preparation (`cp .env.example .env`) before `composer install` so package discovery runs with environment in place.
+  - Replaced test Visa PAN in `tests/Feature/HealthCheckTest.php` with `tok_test_card`, fulfilling PCI SAQ-A zero raw card PAN requirement.
+  - Corrected POSIX ERE syntax in `ci.yml` secret scanning step and excluded benchmark JSON and `.agents` artifacts to eliminate false positives and regex syntax errors.
+  - Hardened Docker smoke test image parsing and `APP_KEY` sed replacement against multiline output and delimiter collisions.
+  - Added explicit `permissions: contents: read`, normalized repository casing to lowercase for GHCR compliance, and updated `appleboy/ssh-action` to `v1.2.0` in `deploy-staging.yml`.
 
 ## Next Logical Tasks
 1. Interactive local UI walkthrough and testing.

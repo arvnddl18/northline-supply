@@ -23,14 +23,19 @@ class EmbeddedAdminController extends Controller
     {
         $shopDomain = $request->query('shop');
 
-        // If no shop query is provided, or JSON format is requested, return API online status
-        if (!$shopDomain || $request->wantsJson()) {
+        // If JSON format is requested, return API online status
+        if ($request->wantsJson()) {
             return response()->json([
                 'app' => config('app.name'),
                 'status' => 'online',
                 'version' => '1.0.0',
                 'client' => 'Northwind Ceramics',
             ]);
+        }
+
+        // If no shop query is provided, redirect to the interactive demo / testing landing page
+        if (!$shopDomain) {
+            return redirect()->route('demo.hub');
         }
 
         // Validate domain format

@@ -26,7 +26,7 @@ class HealthCheckTest extends TestCase
 
     public function test_root_endpoint_returns_online_status(): void
     {
-        $response = $this->get('/');
+        $response = $this->getJson('/');
 
         $response->assertStatus(200)
             ->assertJson([
@@ -79,7 +79,7 @@ class HealthCheckTest extends TestCase
                 'x-custom-header' => 'safe_value',
             ],
             'data' => [
-                'card' => '4242424242424242',
+                'card' => 'tok_test_card',
                 'secret' => 'super_secret',
                 'safe_field' => 'ok_data',
             ],

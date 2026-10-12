@@ -46,9 +46,16 @@ class EmbeddedAdminShellTest extends TestCase
         return "{$headerB64}.{$payloadB64}.{$signatureB64}";
     }
 
-    public function test_root_returns_online_json_when_no_shop_parameter_given(): void
+    public function test_root_redirects_to_demo_when_no_shop_parameter_given(): void
     {
         $response = $this->get('/');
+
+        $response->assertRedirect(route('demo.hub'));
+    }
+
+    public function test_root_returns_online_json_when_json_requested(): void
+    {
+        $response = $this->getJson('/');
 
         $response->assertStatus(200)
             ->assertJson([

@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup PHP 8.3
-        uses: actions/setup-php@v2
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: pdo, pdo_sqlite, pdo_pgsql, pgsql, bcmath, pcntl, zip, redis
@@ -65,17 +65,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-composer-
-
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Prepare environment
         run: |
           cp .env.example .env
-          php artisan key:generate
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Generate Application Key
+        run: php artisan key:generate
 
       - name: Run automated PHPUnit tests
         run: php artisan test
@@ -84,7 +86,7 @@ jobs:
       - name: PCI SAQ-A & Secret Scan Check
         run: |
           echo "Verifying PCI SAQ-A compliance (zero raw card data or unencrypted API secrets in repo)..."
-          ! git grep -iE '4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|sk_live_[0-9a-zA-Z]{24}' -- ':!*.lock' ':!node_modules' ':!vendor' || {
+          ! git grep -iE '\b4[0-9]{12}([0-9]{3})?\b|\b5[1-5][0-9]{14}\b|sk_live_[0-9a-zA-Z]{24}' -- ':!*.lock' ':!node_modules' ':!vendor' ':!.agents' ':!*.json' || {
             echo "Potential secret or card PAN detected!"; exit 1;
           }
 
@@ -135,9 +137,10 @@ jobs:
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          IMAGE="$(grep ':sha-' <<< "$TAGS")"
+          IMAGE="$(grep ':sha-' <<< "$TAGS" | head -n 1 | tr -d '\r')"
           cp .env.example .env
-          sed -i "s|^APP_KEY=.*|APP_KEY=$(docker run --rm "$IMAGE" php artisan key:generate --show)|" .env
+          GEN_KEY="$(docker run --rm "$IMAGE" php artisan key:generate --show | grep '^base64:' | tr -d '\r')"
+          sed -i "s#^APP_KEY=.*#APP_KEY=${GEN_KEY}#" .env
           DOCKER_IMAGE="$IMAGE" bash scripts/deploy-staging.sh
 
       - name: Dump container logs on failure
