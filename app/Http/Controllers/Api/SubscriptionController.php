@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Plan;
 use App\Models\Shop;
 use App\Models\Subscription;
 use Carbon\Carbon;
@@ -202,6 +203,103 @@ class SubscriptionController extends Controller
         return response()->json([
             'message' => 'Subscription cancelled successfully.',
             'subscription' => $subscription,
+        ]);
+    }
+
+    /**
+     * Change subscription plan tier with real-time Stripe proration (S5-T2, US-21).
+     */
+    public function changeTier(Request $request, int $id): JsonResponse
+    {
+        /** @var Shop $shop */
+        $shop = $request->attributes->get('shop');
+
+        $subscription = $shop->subscriptions()->with('plan')->find($id);
+        if (!$subscription) {
+            return response()->json(['error' => 'Subscription not found.'], 404);
+        }
+
+        $validated = $request->validate([
+            'plan_id' => 'required|integer|exists:plans,id',
+        ]);
+
+        $newPlan = $shop->plans()->where('type', 'subscription')->where('active', true)->find($validated['plan_id']);
+        if (!$newPlan) {
+            return response()->json(['error' => 'Invalid or inactive subscription plan.'], 422);
+        }
+
+        if ($subscription->plan_id === $newPlan->id) {
+            return response()->json(['error' => 'Subscription is already on this plan.'], 422);
+        }
+
+        $oldPlan = $subscription->plan;
+        $oldAmountCents = $oldPlan?->deposit_value ?? 0;
+        $newAmountCents = (int) $newPlan->deposit_value;
+        $deltaCents = $newAmountCents - $oldAmountCents;
+
+        $stripeKey = $shop->getStripeSecretKey();
+        if ($stripeKey && $subscription->stripe_subscription_id) {
+            $subResponse = Http::withToken($stripeKey)->get("https://api.stripe.com/v1/subscriptions/{$subscription->stripe_subscription_id}");
+            $itemId = $subResponse->json('items.data.0.id');
+
+            $updatePayload = [
+                'proration_behavior' => 'create_prorations',
+                'proration_date' => now()->timestamp,
+            ];
+
+            if ($itemId) {
+                $currency = strtolower($shop->currency ?? 'AUD');
+                $updatePayload['items'] = [
+                    [
+                        'id' => $itemId,
+                        'price_data' => [
+                            'currency' => $currency,
+                            'product' => $subResponse->json('items.data.0.price.product') ?? 'prod_ceramic_club',
+                            'unit_amount' => $newAmountCents,
+                            'recurring' => [
+                                'interval' => $newPlan->interval ?: 'month',
+                                'interval_count' => $newPlan->interval_count ?: 1,
+                            ],
+                        ],
+                    ],
+                ];
+            }
+
+            $stripeRes = Http::withToken($stripeKey)->asForm()->post(
+                "https://api.stripe.com/v1/subscriptions/{$subscription->stripe_subscription_id}",
+                $updatePayload
+            );
+
+            if ($stripeRes->failed()) {
+                return response()->json([
+                    'error' => 'Failed to update subscription on Stripe: ' . $stripeRes->json('error.message', 'Gateway error.'),
+                ], 502);
+            }
+        }
+
+        $subscription->update([
+            'plan_id' => $newPlan->id,
+        ]);
+
+        AuditLog::record(
+            shopId: $shop->id,
+            action: 'subscription.tier_changed',
+            target: $subscription,
+            meta: [
+                'old_plan_id' => $oldPlan?->id,
+                'new_plan_id' => $newPlan->id,
+                'old_amount_cents' => $oldAmountCents,
+                'new_amount_cents' => $newAmountCents,
+                'delta_cents' => $deltaCents,
+                'proration_behavior' => 'create_prorations',
+            ],
+            userId: $request->attributes->get('user_id')
+        );
+
+        return response()->json([
+            'message' => 'Subscription plan tier changed successfully with proration.',
+            'subscription' => $subscription->fresh()->load('plan'),
+            'delta_cents' => $deltaCents,
         ]);
     }
 }

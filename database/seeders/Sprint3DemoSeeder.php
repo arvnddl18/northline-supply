@@ -31,7 +31,9 @@ class Sprint3DemoSeeder extends Seeder
                 'stripe_account_id' => 'acct_1NorthwindMelbourneDemo',
             ]
         );
-        $shop->setStripeCredentials('pk_test_northwind_demo', 'rk_test_northwind_demo', 'acct_1NorthwindMelbourneDemo');
+        $stripeKey = env('STRIPE_KEY') ?: 'pk_test_northwind_demo';
+        $stripeSecret = env('STRIPE_SECRET') ?: 'rk_test_northwind_demo';
+        $shop->setStripeCredentials($stripeKey, $stripeSecret, 'acct_1NorthwindMelbourneDemo');
 
         // 2. Ensure Store Owner user exists
         $owner = User::firstOrCreate(

@@ -30,6 +30,11 @@ class InstallmentChargeRunnerTest extends TestCase
         parent::setUp();
         \Illuminate\Support\Facades\Mail::fake();
 
+        config([
+            'services.shopify.api_key' => 'test_api_key_123',
+            'services.shopify.api_secret' => 'proxy_secret_key_789',
+        ]);
+
         $this->shop = Shop::create([
             'shopify_domain' => 'installments.myshopify.com',
             'access_token' => 'shpat_test_token',
@@ -224,5 +229,200 @@ class InstallmentChargeRunnerTest extends TestCase
             'action' => 'dispute.opened',
             'target_id' => (string) $this->order->id,
         ]);
+    }
+
+    protected function generateSessionToken(array $overrides = []): string
+    {
+        $secret = config('services.shopify.api_secret');
+        $header = ['alg' => 'HS256', 'typ' => 'JWT'];
+        $payload = array_merge([
+            'iss' => "https://installments.myshopify.com/admin",
+            'dest' => "https://installments.myshopify.com",
+            'aud' => config('services.shopify.api_key'),
+            'sub' => '12345678',
+            'exp' => time() + 60,
+            'nbf' => time() - 5,
+            'iat' => time(),
+            'jti' => 'jwt-test-uuid',
+            'sid' => 'session-test-uuid',
+        ], $overrides);
+
+        $headerB64 = rtrim(strtr(base64_encode(json_encode($header)), '+/', '-_'), '=');
+        $payloadB64 = rtrim(strtr(base64_encode(json_encode($payload)), '+/', '-_'), '=');
+        $signature = hash_hmac('sha256', "{$headerB64}.{$payloadB64}", $secret, true);
+        $signatureB64 = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
+
+        return "{$headerB64}.{$payloadB64}.{$signatureB64}";
+    }
+
+    protected function signProxyParams(array $params): array
+    {
+        ksort($params);
+        $pairs = [];
+        foreach ($params as $key => $val) {
+            $val = is_array($val) ? implode(',', $val) : (string) $val;
+            $pairs[] = "{$key}={$val}";
+        }
+        $payload = implode('', $pairs);
+        $params['signature'] = hash_hmac('sha256', $payload, config('services.shopify.api_secret'));
+        return $params;
+    }
+
+    public function test_can_create_and_preview_installment_plan_via_api(): void
+    {
+        $token = $this->generateSessionToken();
+
+        // 1. Create installment plan
+        $response = $this->withHeaders(['Authorization' => "Bearer {$token}"])
+            ->postJson('/api/plans', [
+                'name' => '3x Bi-Weekly Ceramic Splits',
+                'type' => 'installment',
+                'installments_count' => 3,
+                'interval' => 'week',
+                'interval_count' => 2,
+                'active' => true,
+            ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('plan.type', 'installment')
+            ->assertJsonPath('plan.installments_count', 3);
+
+        $this->assertDatabaseHas('plans', [
+            'shop_id' => $this->shop->id,
+            'name' => '3x Bi-Weekly Ceramic Splits',
+            'type' => 'installment',
+            'installments_count' => 3,
+        ]);
+
+        // 2. Preview installment calculation
+        $previewRes = $this->withHeaders(['Authorization' => "Bearer {$token}"])
+            ->postJson('/api/plans/preview', [
+                'type' => 'installment',
+                'installments_count' => 3,
+                'sample_total_cents' => 30000,
+                'currency' => 'AUD',
+            ]);
+
+        $previewRes->assertStatus(200)
+            ->assertJsonPath('is_installment', true)
+            ->assertJsonPath('installments_count', 3)
+            ->assertJsonCount(3, 'schedule');
+    }
+
+    public function test_storefront_app_proxy_resolves_installment_plan_and_starts_checkout(): void
+    {
+        $plan = Plan::create([
+            'shop_id' => $this->shop->id,
+            'name' => '3-Pay Plan',
+            'type' => 'installment',
+            'deposit_type' => 'percentage',
+            'deposit_value' => 33,
+            'installments_count' => 3,
+            'interval' => 'week',
+            'interval_count' => 2,
+            'active' => true,
+        ]);
+
+        $params = $this->signProxyParams([
+            'shop' => $this->shop->shopify_domain,
+            'product_id' => '12345',
+            'price' => '30000',
+            'currency' => 'AUD',
+        ]);
+
+        // 1. Query plan-info via App Proxy
+        $infoRes = $this->getJson('/proxy/plan-info?' . http_build_query($params));
+        $infoRes->assertStatus(200)
+            ->assertJsonPath('eligible', true)
+            ->assertJsonPath('plan.type', 'installment')
+            ->assertJsonPath('calculation.is_installment', true)
+            ->assertJsonCount(3, 'calculation.schedule');
+
+        // 2. Start Checkout via App Proxy
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions' => Http::response([
+                'id' => 'cs_test_installment_checkout',
+                'url' => 'https://checkout.stripe.com/pay/cs_test_installment_checkout',
+            ], 200),
+        ]);
+
+        $checkoutParams = $this->signProxyParams([
+            'shop' => $this->shop->shopify_domain,
+            'product_id' => '12345',
+            'variant_id' => '99999',
+            'plan_id' => (string) $plan->id,
+            'price' => '30000',
+            'quantity' => '1',
+            'currency' => 'AUD',
+            'format' => 'json',
+        ]);
+
+        $checkoutRes = $this->getJson('/proxy/checkout?' . http_build_query($checkoutParams));
+        $checkoutRes->assertStatus(200)
+            ->assertJsonPath('redirect_url', 'https://checkout.stripe.com/pay/cs_test_installment_checkout');
+    }
+
+    public function test_webhook_creates_installment_schedules_on_checkout_completion(): void
+    {
+        $plan = Plan::create([
+            'shop_id' => $this->shop->id,
+            'name' => '3-Pay Plan',
+            'type' => 'installment',
+            'deposit_type' => 'percentage',
+            'deposit_value' => 33,
+            'installments_count' => 3,
+            'interval' => 'week',
+            'interval_count' => 2,
+            'active' => true,
+        ]);
+
+        Http::fake([
+            'https://installments.myshopify.com/admin/api/*' => Http::response([
+                'order' => ['id' => 8888, 'tags' => 'deposit-paid'],
+            ], 200),
+        ]);
+
+        $event = WebhookEvent::create([
+            'source' => 'stripe',
+            'external_id' => 'evt_checkout_installment_completed',
+            'topic' => 'checkout.session.completed',
+            'payload' => [
+                'type' => 'checkout.session.completed',
+                'data' => [
+                    'object' => [
+                        'id' => 'cs_test_session_inst',
+                        'customer' => 'cus_test_runner',
+                        'customer_email' => 'installment_buyer@ceramics.com',
+                        'payment_intent' => 'pi_inst_initial_123',
+                        'amount_total' => 15000,
+                        'metadata' => [
+                            'shop_id' => (string) $this->shop->id,
+                            'plan_id' => (string) $plan->id,
+                            'plan_type' => 'installment',
+                            'total_cents' => '45000',
+                            'deposit_cents' => '15000',
+                            'balance_cents' => '30000',
+                            'currency' => 'AUD',
+                            'variant_id' => '99999',
+                            'quantity' => '1',
+                        ],
+                    ],
+                ],
+            ],
+            'status' => WebhookEvent::STATUS_PENDING,
+            'received_at' => now(),
+        ]);
+
+        $job = new ProcessStripeWebhookJob($event->id);
+        $job->handle(app(\App\Services\Shopify\ShopifyOrderService::class), app(\App\Services\Email\EmailService::class));
+
+        $createdOrder = Order::where('shop_id', $this->shop->id)->where('total_amount', 45000)->first();
+        $this->assertNotNull($createdOrder);
+
+        $schedules = $createdOrder->paymentSchedules()->orderBy('sequence')->get();
+        $this->assertCount(3, $schedules);
+        $this->assertEquals(PaymentSchedule::STATUS_SUCCEEDED, $schedules[0]->status);
+        $this->assertEquals(PaymentSchedule::STATUS_PENDING, $schedules[1]->status);
+        $this->assertEquals(PaymentSchedule::STATUS_PENDING, $schedules[2]->status);
     }
 }

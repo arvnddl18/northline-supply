@@ -36,8 +36,13 @@ class PlanController extends Controller
                     ? "{$plan->deposit_value}%"
                     : $this->depositService->format((int) $plan->deposit_value, $currency);
 
+                $terms = $plan->isInstallment()
+                    ? "{$plan->installments_count} payments (" . ($plan->interval_count > 1 ? "{$plan->interval_count} {$plan->interval}s" : "{$plan->interval}ly") . ')'
+                    : $formattedValue;
+
                 return array_merge($plan->toArray(), [
                     'formatted_deposit_value' => $formattedValue,
+                    'formatted_terms' => $terms,
                     'targets_count' => $plan->targets->count(),
                 ]);
             });
@@ -59,9 +64,9 @@ class PlanController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'type' => ['nullable', 'string', 'in:deposit,installment,subscription'],
-            'deposit_type' => ['required', 'string', 'in:percentage,fixed'],
-            'deposit_value' => ['required', 'integer', 'min:1'],
-            'installments_count' => ['nullable', 'integer', 'min:2'],
+            'deposit_type' => ['nullable', 'string', 'in:percentage,fixed'],
+            'deposit_value' => ['nullable', 'integer', 'min:1'],
+            'installments_count' => ['nullable', 'integer', 'min:2', 'max:4'],
             'interval' => ['nullable', 'string', 'in:week,month'],
             'interval_count' => ['nullable', 'integer', 'min:1'],
             'active' => ['nullable', 'boolean'],
@@ -71,11 +76,23 @@ class PlanController extends Controller
             'collection_ids.*' => ['string'],
         ]);
 
-        $this->validateDepositLogic(
-            $validated['deposit_type'],
-            $validated['deposit_value'],
-            $shop->currency ?? 'AUD'
-        );
+        $type = $validated['type'] ?? 'deposit';
+        if ($type === 'installment') {
+            $validated['installments_count'] = $validated['installments_count'] ?? 3;
+            $validated['deposit_type'] = $validated['deposit_type'] ?? 'percentage';
+            $validated['deposit_value'] = $validated['deposit_value'] ?? (int) round(100 / $validated['installments_count']);
+        } else {
+            if (empty($validated['deposit_type']) || empty($validated['deposit_value'])) {
+                throw ValidationException::withMessages([
+                    'deposit_type' => ['Deposit calculation method and value are required.'],
+                ]);
+            }
+            $this->validateDepositLogic(
+                $validated['deposit_type'],
+                $validated['deposit_value'],
+                $shop->currency ?? 'AUD'
+            );
+        }
 
         $plan = DB::transaction(function () use ($shop, $validated, $request) {
             $data = [
@@ -233,12 +250,42 @@ class PlanController extends Controller
     }
 
     /**
-     * Live preview calculation for given deposit parameters.
+     * Live preview calculation for given deposit or installment parameters.
      */
     public function preview(Request $request): JsonResponse
     {
         /** @var Shop $shop */
         $shop = $request->attributes->get('shop');
+
+        $type = $request->input('type') ?? $request->input('plan_type') ?? 'deposit';
+        $totalCents = (int) ($request->input('sample_total_cents') ?? 20000); // Default $200.00
+        $currency = $request->input('currency') ?? ($shop->currency ?? 'AUD');
+
+        if ($type === 'installment') {
+            $count = (int) ($request->input('installments_count') ?? 3);
+            if ($count < 2 || $count > 4) {
+                return response()->json(['error' => 'Installment count must be between 2 and 4.'], 422);
+            }
+            $amounts = app(\App\Services\Payments\InstallmentService::class)->calculateSchedule($totalCents, $count);
+            $schedule = [];
+            foreach ($amounts as $i => $amt) {
+                $schedule[] = [
+                    'sequence' => $i + 1,
+                    'amount_cents' => $amt,
+                    'formatted_amount' => $this->depositService->format($amt, $currency),
+                ];
+            }
+            return response()->json([
+                'total_cents' => $totalCents,
+                'formatted_total' => $this->depositService->format($totalCents, $currency),
+                'currency' => $currency,
+                'is_installment' => true,
+                'installments_count' => $count,
+                'first_installment_cents' => $amounts[0],
+                'formatted_first_installment' => $this->depositService->format($amounts[0], $currency),
+                'schedule' => $schedule,
+            ]);
+        }
 
         $validated = $request->validate([
             'deposit_type' => ['required', 'string', 'in:percentage,fixed'],
@@ -246,9 +293,6 @@ class PlanController extends Controller
             'sample_total_cents' => ['nullable', 'integer', 'min:100'],
             'currency' => ['nullable', 'string', 'size:3'],
         ]);
-
-        $totalCents = $validated['sample_total_cents'] ?? 20000; // Default $200.00
-        $currency = $validated['currency'] ?? ($shop->currency ?? 'AUD');
 
         try {
             $result = $this->depositService->calculate(

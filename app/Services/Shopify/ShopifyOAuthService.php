@@ -192,5 +192,39 @@ class ShopifyOAuthService
     {
         return rtrim(strtr(base64_encode($input), '+/', '-_'), '=');
     }
+
+    /**
+     * Generate and cryptographically sign a Shopify App Bridge Session Token JWT.
+     * Useful for local environment testing and automated verification.
+     *
+     * @param string $shopDomain
+     * @param array<string, mixed> $claims
+     * @return string
+     */
+    public function generateSessionToken(string $shopDomain, array $claims = []): string
+    {
+        $secret = config('services.shopify.api_secret') ?: env('SHOPIFY_API_SECRET', 'test_secret');
+        $apiKey = config('services.shopify.api_key') ?: env('SHOPIFY_API_KEY', 'test_key');
+
+        $header = ['alg' => 'HS256', 'typ' => 'JWT'];
+        $payload = array_merge([
+            'iss' => "https://{$shopDomain}/admin",
+            'dest' => "https://{$shopDomain}",
+            'aud' => $apiKey,
+            'sub' => '12345678',
+            'exp' => time() + 86400,
+            'nbf' => time() - 5,
+            'iat' => time(),
+            'jti' => (string) \Illuminate\Support\Str::uuid(),
+            'sid' => (string) \Illuminate\Support\Str::uuid(),
+        ], $claims);
+
+        $headerB64 = $this->base64UrlEncode((string) json_encode($header));
+        $payloadB64 = $this->base64UrlEncode((string) json_encode($payload));
+        $signature = hash_hmac('sha256', "{$headerB64}.{$payloadB64}", $secret, true);
+        $signatureB64 = $this->base64UrlEncode($signature);
+
+        return "{$headerB64}.{$payloadB64}.{$signatureB64}";
+    }
 }
 

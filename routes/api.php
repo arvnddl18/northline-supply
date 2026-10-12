@@ -42,13 +42,16 @@ Route::middleware([VerifyShopifySessionToken::class])->group(function () {
         ->middleware(\App\Http\Middleware\EnsureOwnerRole::class)
         ->name('api.orders.refund');
 
-    // Ceramic Club Subscriptions API (US-12, US-21, S5-T1, S5-T2)
+    // Ceramic Club Subscriptions API (US-12, US-21, S5-T1, S5-T2, S5-T4)
     Route::get('/subscriptions', [\App\Http\Controllers\Api\SubscriptionController::class, 'index'])->name('api.subscriptions.index');
     Route::get('/subscriptions/{id}', [\App\Http\Controllers\Api\SubscriptionController::class, 'show'])->name('api.subscriptions.show');
     Route::post('/subscriptions/{id}/pause', [\App\Http\Controllers\Api\SubscriptionController::class, 'pause'])->name('api.subscriptions.pause');
     Route::post('/subscriptions/{id}/resume', [\App\Http\Controllers\Api\SubscriptionController::class, 'resume'])->name('api.subscriptions.resume');
     Route::post('/subscriptions/{id}/skip', [\App\Http\Controllers\Api\SubscriptionController::class, 'skip'])->name('api.subscriptions.skip');
-    Route::post('/subscriptions/{id}/cancel', [\App\Http\Controllers\Api\SubscriptionController::class, 'cancel'])->name('api.subscriptions.cancel');
+    Route::post('/subscriptions/{id}/change-tier', [\App\Http\Controllers\Api\SubscriptionController::class, 'changeTier'])->name('api.subscriptions.change_tier');
+    Route::post('/subscriptions/{id}/cancel', [\App\Http\Controllers\Api\SubscriptionController::class, 'cancel'])
+        ->middleware(\App\Http\Middleware\EnsureOwnerRole::class)
+        ->name('api.subscriptions.cancel');
 
     // CSV Transaction Export API (US-14, S5-T5)
     Route::get('/transactions/export', [\App\Http\Controllers\Api\TransactionExportController::class, 'export'])->name('api.transactions.export');

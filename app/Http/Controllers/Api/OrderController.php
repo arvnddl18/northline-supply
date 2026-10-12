@@ -76,6 +76,7 @@ class OrderController extends Controller
                     Order::STATUS_FAILED => 'Payment Failed',
                     Order::STATUS_PARTIALLY_REFUNDED => 'Partially Refunded',
                     Order::STATUS_REFUNDED => 'Refunded in Full',
+                    'disputed' => 'Disputed by Customer',
                     default => ucfirst(str_replace('_', ' ', $order->payment_status)),
                 },
                 'due_date' => $schedule && $schedule->due_at ? $schedule->due_at->toIso8601String() : null,

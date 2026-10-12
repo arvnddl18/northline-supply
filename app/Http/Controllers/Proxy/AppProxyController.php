@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use App\Models\Shop;
 use App\Services\Payment\DepositCalculationService;
+use App\Services\Payments\InstallmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -13,11 +14,12 @@ use Illuminate\Support\Facades\Http;
 class AppProxyController extends Controller
 {
     public function __construct(
-        protected DepositCalculationService $depositService
+        protected DepositCalculationService $depositService,
+        protected InstallmentService $installmentService
     ) {}
 
     /**
-     * Resolve eligible deposit plan and calculate breakdown for a storefront product.
+     * Resolve eligible deposit or installment plan and calculate breakdown for a storefront product.
      */
     public function planInfo(Request $request): JsonResponse
     {
@@ -58,6 +60,52 @@ class AppProxyController extends Controller
         }
 
         try {
+            if ($plan->isInstallment()) {
+                $count = $plan->installments_count ?: 3;
+                $amounts = $this->installmentService->calculateSchedule($totalCents, $count);
+                $intervalType = $plan->interval ?: 'week';
+                $intervalCount = $plan->interval_count ?: 2;
+
+                $scheduleBreakdown = [];
+                foreach ($amounts as $idx => $amount) {
+                    $seq = $idx + 1;
+                    $label = $seq === 1
+                        ? 'Due today at checkout'
+                        : "Payment {$seq} (in " . (($seq - 1) * $intervalCount) . " {$intervalType}s)";
+
+                    $scheduleBreakdown[] = [
+                        'sequence' => $seq,
+                        'amount_cents' => $amount,
+                        'formatted_amount' => $this->depositService->format($amount, $currency),
+                        'due_label' => $label,
+                    ];
+                }
+
+                return response()->json([
+                    'eligible' => true,
+                    'plan' => [
+                        'id' => $plan->id,
+                        'name' => $plan->name,
+                        'type' => $plan->type,
+                        'deposit_type' => $plan->deposit_type,
+                        'deposit_value' => $plan->deposit_value,
+                        'installments_count' => $count,
+                        'interval' => $intervalType,
+                        'interval_count' => $intervalCount,
+                        'lead_time' => '3–6 weeks handmade lead time',
+                    ],
+                    'calculation' => [
+                        'total_cents' => $totalCents,
+                        'formatted_total' => $this->depositService->format($totalCents, $currency),
+                        'currency' => $currency,
+                        'is_installment' => true,
+                        'first_installment_cents' => $amounts[0],
+                        'formatted_first_installment' => $this->depositService->format($amounts[0], $currency),
+                        'schedule' => $scheduleBreakdown,
+                    ],
+                ]);
+            }
+
             $calculation = $this->depositService->calculate(
                 $totalCents,
                 $plan->deposit_type,
@@ -86,7 +134,7 @@ class AppProxyController extends Controller
     }
 
     /**
-     * Create a Stripe Checkout session for the deposit and redirect (ADR-002 Option B).
+     * Create a Stripe Checkout session for the deposit or installment and redirect (ADR-002 Option B).
      * shortcut: price comes from the signed proxy query (HMAC-protected), not re-fetched from Shopify Admin API; upgrade when order creation (S2) lands.
      */
     public function startCheckout(Request $request): JsonResponse|\Illuminate\Http\RedirectResponse
@@ -113,14 +161,50 @@ class AppProxyController extends Controller
         $qty = (int) ($data['quantity'] ?? 1);
         $currency = strtoupper($data['currency'] ?? ($shop->currency ?? 'AUD'));
         $totalCents = (int) $data['price'] * $qty;
+        $name = $data['title'] ?? 'Pre-order item';
 
         try {
-            $calc = $this->depositService->calculate($totalCents, $plan->deposit_type, $plan->deposit_value, $currency);
+            if ($plan->isInstallment()) {
+                $count = $plan->installments_count ?: 3;
+                $amounts = $this->installmentService->calculateSchedule($totalCents, $count);
+                $upfrontCents = $amounts[0];
+                $remainingCents = $totalCents - $upfrontCents;
+                $lineItemTitle = "Installment 1 of {$count}: {$name}";
+                $unitAmount = $upfrontCents;
+                $metadata = [
+                    'shop_id' => $shop->id,
+                    'plan_id' => $plan->id,
+                    'plan_type' => 'installment',
+                    'installments_count' => $count,
+                    'product_id' => $data['product_id'],
+                    'variant_id' => $data['variant_id'],
+                    'quantity' => $qty,
+                    'total_cents' => $totalCents,
+                    'deposit_cents' => $upfrontCents,
+                    'balance_cents' => $remainingCents,
+                    'currency' => $currency,
+                ];
+            } else {
+                $calc = $this->depositService->calculate($totalCents, $plan->deposit_type, $plan->deposit_value, $currency);
+                $lineItemTitle = "Pre-order Deposit: {$name}";
+                $unitAmount = $calc['deposit_cents'];
+                $metadata = [
+                    'shop_id' => $shop->id,
+                    'plan_id' => $plan->id,
+                    'plan_type' => 'deposit',
+                    'product_id' => $data['product_id'],
+                    'variant_id' => $data['variant_id'],
+                    'quantity' => $qty,
+                    'total_cents' => $totalCents,
+                    'deposit_cents' => $calc['deposit_cents'],
+                    'balance_cents' => $calc['balance_cents'],
+                    'currency' => $currency,
+                ];
+            }
         } catch (\InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
 
-        $name = $data['title'] ?? 'Pre-order item';
         $base = 'https://'.$shop->shopify_domain;
         $response = Http::withBasicAuth($secret, '')->asForm()->post('https://api.stripe.com/v1/checkout/sessions', [
             'mode' => 'payment',
@@ -129,21 +213,11 @@ class AppProxyController extends Controller
                 'quantity' => 1,
                 'price_data' => [
                     'currency' => strtolower($currency),
-                    'unit_amount' => $calc['deposit_cents'],
-                    'product_data' => ['name' => "Pre-order Deposit: {$name}"],
+                    'unit_amount' => $unitAmount,
+                    'product_data' => ['name' => $lineItemTitle],
                 ],
             ]],
-            'metadata' => [
-                'shop_id' => $shop->id,
-                'plan_id' => $plan->id,
-                'product_id' => $data['product_id'],
-                'variant_id' => $data['variant_id'],
-                'quantity' => $qty,
-                'total_cents' => $totalCents,
-                'deposit_cents' => $calc['deposit_cents'],
-                'balance_cents' => $calc['balance_cents'],
-                'currency' => $currency,
-            ],
+            'metadata' => $metadata,
             'success_url' => $base.'/pages/deposit-confirmed?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => $base.'/products',
         ]);

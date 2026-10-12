@@ -49,7 +49,18 @@ related: [[APP_FLOW]], [[PRD]]
   - Active plans, upcoming billing schedules, transaction history, and self-service card update.
   - Subscription management controls for Ceramic Club: Pause, Skip Month, Cancel.
 
+## 6. Artisan Stoneware Aesthetics & Kinematics (ADR-007)
+- **Palette Tokens**: Bisque cream (`#FAF7F5`), Australian terracotta (`#C46238`), celadon sage (`#4A6B53`), ochre glaze (`#B87C24`), and studio charcoal (`#1C1917`).
+- **Typography**: Editorial header hierarchy with `Playfair Display` serif accents paired with clean `Inter` UI body text.
+- **Emil Kowalski Micro-Interactions**:
+  - Tactile Press: `transform: scale(0.97)` on `:active` with 140ms ease-out.
+  - Modals: Enter with `scale(0.96) translateY(8px) -> scale(1) translateY(0)` with 260ms drawer curve, blurred backdrop scrim (`backdrop-filter: blur(8px)`), and accessible focus trap.
+  - Slide-Over Drawers (Sheets): Right-edge slide-in using `--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1)` for Plan Builder and Order Payment Schedule inspector.
+  - Skeletons: Bisque shimmer placeholders matching target geometries to guarantee zero layout shifts (CLS < 0.01).
+- **Toast Deck**: Non-blocking stacked floating notifications for immediate feedback.
+
 ## Change Log
 | Date | Change | Old → New | Reason |
 |---|---|---|---|
 | 2026-10-11 | Design brief baseline | Scaffold design brief → Northwind Ceramics v1.0 | Full requirements ingestion from client specification |
+| 2026-10-12 | ADR-007 Modernization | Polaris baseline → Artisan Stoneware, Emil Kinematics, Drawers & Skeletons | Comprehensive UI/UX overhaul and modularization |

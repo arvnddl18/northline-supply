@@ -18,7 +18,7 @@ class EnsureOwnerRole
 
         if ($user && $user->role === 'staff') {
             return response()->json([
-                'error' => 'Forbidden: Staff role is restricted from issuing refunds or modifying Stripe credentials.',
+                'error' => 'Forbidden: Staff role is restricted from issuing refunds, modifying Stripe credentials, or cancelling subscriptions.',
             ], 403);
         }
 

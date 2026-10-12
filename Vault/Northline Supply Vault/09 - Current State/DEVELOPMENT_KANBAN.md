@@ -11,9 +11,7 @@ kanban-plugin: board
 
 ## Backlog
 
-- [ ] **S5-T7**: Docs and handover #p0-must #dev #sprint5 #1.0d
 - [ ] **S4-T4**: Retry logic #p1-should #dev #sprint4 #1.5d
-- [ ] **S5-T2**: Pause, skip, cancel, proration #p1-should #dev #sprint5 #1.5d
 
 ## Todo
 
@@ -64,10 +62,12 @@ kanban-plugin: board
 - [x] **S4-T6**: Dispute alerts #p1-should #dev #sprint4 #1.0d
 - [x] **S4-T7**: End-to-end tests #p1-should #dev #sprint4 #1.0d
 - [x] **S5-T1**: Subscription model #p1-should #dev #sprint5 #2.5d
+- [x] **S5-T2**: Pause, skip, cancel, proration #p1-should #dev #sprint5 #1.5d
 - [x] **S5-T3**: Customer portal #p1-should #dev #sprint5 #2.0d
 - [x] **S5-T4**: Staff role #p1-should #dev #sprint5 #1.0d
 - [x] **S5-T5**: CSV export #p1-should #dev #sprint5 #0.5d
 - [x] **S5-T6**: Hardening #p0-must #dev #sprint5 #1.5d
+- [x] **S5-T7**: Docs and handover #p0-must #dev #sprint5 #1.0d
 
 %% kanban:settings
 ```

@@ -58,11 +58,17 @@ class EmbeddedAdminController extends Controller
         $apiKey = config('services.shopify.api_key') ?: env('SHOPIFY_API_KEY');
         $host = $request->query('host', '');
 
+        $devSessionToken = null;
+        if (app()->environment('local', 'testing')) {
+            $devSessionToken = $this->oauthService->generateSessionToken($shopDomain);
+        }
+
         return view('app', [
             'apiKey' => $apiKey,
             'shop' => $shopDomain,
             'host' => $host,
             'currency' => $shop->currency ?? 'AUD',
+            'devSessionToken' => $devSessionToken,
         ]);
     }
 }

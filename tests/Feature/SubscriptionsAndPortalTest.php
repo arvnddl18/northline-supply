@@ -261,4 +261,137 @@ class SubscriptionsAndPortalTest extends TestCase
         $this->assertStringContainsString('pi_export_test_1', $content);
         $this->assertStringContainsString('member@ceramicclub.com', $content);
     }
+
+    public function test_subscription_tier_change_with_stripe_prorations(): void
+    {
+        $newPlan = Plan::create([
+            'shop_id' => $this->shop->id,
+            'name' => 'Deluxe Glaze Kit Tier',
+            'type' => 'subscription',
+            'interval' => 'month',
+            'interval_count' => 1,
+            'deposit_value' => 9500, // $95.00
+            'active' => true,
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/subscriptions/sub_stripe_123' => Http::response([
+                'id' => 'sub_stripe_123',
+                'items' => [
+                    'data' => [
+                        [
+                            'id' => 'si_stripe_item_123',
+                            'price' => ['product' => 'prod_ceramic_club'],
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $token = $this->token();
+        $response = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/subscriptions/{$this->subscription->id}/change-tier", [
+                'plan_id' => $newPlan->id,
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('subscription.plan_id', $newPlan->id)
+            ->assertJsonPath('delta_cents', 3000); // 9500 - 6500 = +3000 cents
+
+        $this->assertEquals($newPlan->id, $this->subscription->fresh()->plan_id);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'shop_id' => $this->shop->id,
+            'action' => 'subscription.tier_changed',
+        ]);
+    }
+
+    public function test_customer_portal_interactive_actions_via_signed_routes(): void
+    {
+        Http::fake([
+            'https://api.stripe.com/v1/subscriptions/*' => Http::response(['id' => 'sub_stripe_123'], 200),
+        ]);
+
+        // 1. Pause subscription via signed portal route
+        $pauseUrl = URL::signedRoute('customer.portal.subscription.pause', [
+            'customer' => $this->customer->id,
+            'subscription' => $this->subscription->id,
+        ], now()->addMinutes(15));
+
+        $resPause = $this->post($pauseUrl, ['months' => 2]);
+        $resPause->assertRedirect();
+        $this->subscription->refresh();
+        $this->assertEquals(Subscription::STATUS_PAUSED, $this->subscription->status);
+        $this->assertNotNull($this->subscription->paused_until);
+
+        // 2. Resume subscription via signed route
+        $resumeUrl = URL::signedRoute('customer.portal.subscription.resume', [
+            'customer' => $this->customer->id,
+            'subscription' => $this->subscription->id,
+        ], now()->addMinutes(15));
+
+        $resResume = $this->post($resumeUrl);
+        $resResume->assertRedirect();
+        $this->subscription->refresh();
+        $this->assertEquals(Subscription::STATUS_ACTIVE, $this->subscription->status);
+
+        // 3. Skip next renewal cycle
+        $oldRenewal = $this->subscription->next_renewal_at;
+        $skipUrl = URL::signedRoute('customer.portal.subscription.skip', [
+            'customer' => $this->customer->id,
+            'subscription' => $this->subscription->id,
+        ], now()->addMinutes(15));
+
+        $resSkip = $this->post($skipUrl);
+        $resSkip->assertRedirect();
+        $this->subscription->refresh();
+        $this->assertTrue($this->subscription->next_renewal_at->gt($oldRenewal));
+
+        // 4. Cancel subscription via portal
+        $cancelUrl = URL::signedRoute('customer.portal.subscription.cancel', [
+            'customer' => $this->customer->id,
+            'subscription' => $this->subscription->id,
+        ], now()->addMinutes(15));
+
+        $resCancel = $this->post($cancelUrl);
+        $resCancel->assertRedirect();
+        $this->subscription->refresh();
+        $this->assertEquals(Subscription::STATUS_CANCELLED, $this->subscription->status);
+
+        // 5. Tampered or unsigned access is rejected (403)
+        $tamperedUrl = $cancelUrl . '&tampered=1';
+        $resTampered = $this->post($tamperedUrl);
+        $resTampered->assertStatus(403);
+    }
+
+    public function test_staff_role_cannot_cancel_subscription_but_can_pause(): void
+    {
+        $token = $this->token();
+
+        Http::fake([
+            'https://api.stripe.com/v1/subscriptions/*' => Http::response(['id' => 'sub_stripe_123'], 200),
+        ]);
+
+        // When staff tries to cancel: HTTP 403
+        $this->owner->update(['role' => 'staff']);
+        $resCancelStaff = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/subscriptions/{$this->subscription->id}/cancel");
+
+        $resCancelStaff->assertStatus(403)
+            ->assertJsonStructure(['error']);
+
+        // When staff pauses: HTTP 200 permitted
+        $resPauseStaff = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/subscriptions/{$this->subscription->id}/pause");
+
+        $resPauseStaff->assertStatus(200);
+
+        // When restored to owner, cancel is permitted
+        $this->owner->update(['role' => 'owner']);
+        $resCancelOwner = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/subscriptions/{$this->subscription->id}/cancel");
+
+        $resCancelOwner->assertStatus(200);
+        $this->assertEquals(Subscription::STATUS_CANCELLED, $this->subscription->fresh()->status);
+    }
 }

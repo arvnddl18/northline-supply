@@ -47,6 +47,47 @@
   function renderWidget(container, data, shopDomain, productId) {
     var plan = data.plan;
     var calc = data.calculation;
+    var isInstallment = Boolean(calc.is_installment || plan.type === 'installment');
+
+    var breakdownContent = '';
+    if (isInstallment && calc.schedule && calc.schedule.length > 0) {
+      breakdownContent = `
+        <div style="width: 100%;">
+          <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #1f2937;">Installment Payment Schedule</div>
+          ${calc.schedule.map(function(s) {
+            return `
+              <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px dashed #e5e7eb;">
+                <span style="color: #4b5563;">${s.due_label}</span>
+                <strong style="color: #111827;">${s.formatted_amount}</strong>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    } else {
+      breakdownContent = `
+        <div class="northwind-breakdown-col">
+          <span class="northwind-breakdown-label">Due Today (Deposit)</span>
+          <span class="northwind-breakdown-value">${calc.formatted_deposit}</span>
+        </div>
+        <div class="northwind-breakdown-col" style="text-align: right;">
+          <span class="northwind-breakdown-label">Due Prior to Dispatch</span>
+          <span class="northwind-breakdown-value" style="color: #4b5563;">${calc.formatted_balance}</span>
+        </div>
+      `;
+    }
+
+    var policyText = isInstallment
+      ? 'First installment charged at checkout. Remaining installments automatically charged to your saved card on schedule.'
+      : 'Deposits are non-refundable once making begins. Remaining balance billed via secure payment link prior to shipping.';
+
+    var optionTitle = isInstallment
+      ? `Pay in ${plan.installments_count || 3} Installments`
+      : 'Pay Pre-order Deposit';
+
+    var optionPrice = isInstallment
+      ? `${calc.formatted_first_installment} today`
+      : calc.formatted_deposit;
 
     var html = `
       <div class="northwind-deposit-card" role="region" aria-label="Pre-order Payment Options">
@@ -67,33 +108,26 @@
             </div>
           </label>
 
-          <!-- Deposit Option -->
+          <!-- Deposit / Installment Option -->
           <label class="northwind-option-label selected" id="nw-label-deposit">
             <input type="radio" name="northwind_payment_mode" value="deposit" class="northwind-radio-input">
             <div class="northwind-option-content">
               <div class="northwind-option-title">
-                <span>Pay Pre-order Deposit</span>
-                <span>${calc.formatted_deposit}</span>
+                <span>${optionTitle}</span>
+                <span>${optionPrice}</span>
               </div>
               <div class="northwind-option-desc">${plan.name}</div>
             </div>
           </label>
         </div>
 
-        <!-- Deposit Breakdown -->
-        <div class="northwind-deposit-breakdown" id="nw-breakdown-box">
-          <div class="northwind-breakdown-col">
-            <span class="northwind-breakdown-label">Due Today (Deposit)</span>
-            <span class="northwind-breakdown-value">${calc.formatted_deposit}</span>
-          </div>
-          <div class="northwind-breakdown-col" style="text-align: right;">
-            <span class="northwind-breakdown-label">Due Prior to Dispatch</span>
-            <span class="northwind-breakdown-value" style="color: #4b5563;">${calc.formatted_balance}</span>
-          </div>
+        <!-- Breakdown Box -->
+        <div class="northwind-deposit-breakdown" id="nw-breakdown-box" style="display: flex;">
+          ${breakdownContent}
         </div>
 
         <div class="northwind-policy-note">
-          Deposits are non-refundable once making begins. Remaining balance billed via secure payment link prior to shipping.
+          ${policyText}
         </div>
       </div>
     `;
@@ -107,7 +141,7 @@
     var labelFull = document.getElementById('nw-label-full');
     var breakdownBox = document.getElementById('nw-breakdown-box');
 
-    // Default select deposit option
+    // Default select deposit/installment option
     radioDeposit.checked = true;
     labelDeposit.classList.add('selected');
     labelFull.classList.remove('selected');
@@ -128,7 +162,7 @@
     radioDeposit.addEventListener('change', updateSelection);
     radioFull.addEventListener('change', updateSelection);
 
-    // Intercept enclosing product form submit when deposit mode is selected
+    // Intercept enclosing product form submit when deposit/installment mode is selected
     var productForm = container.closest('form[action*="/cart/add"]') || document.querySelector('form[action*="/cart/add"]');
     if (productForm) {
       productForm.addEventListener('submit', function(e) {

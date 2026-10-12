@@ -33,6 +33,7 @@ class AdminOverviewController extends Controller
                 'plans_configured' => $plansCount > 0,
                 'ready_for_storefront' => $isStripeConnected && $plansCount > 0,
             ],
+            'user_role' => $request->attributes->get('user')?->role ?? 'owner',
             'version' => '1.0.0',
         ]);
     }
