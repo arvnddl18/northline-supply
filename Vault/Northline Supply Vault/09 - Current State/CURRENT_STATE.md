@@ -225,7 +225,7 @@
   - **Native OpenSSH Automation**: Replaced third-party action with standard `webfactory/ssh-agent@v0.9.0` and native OpenSSH (`ssh` / `scp`), removing external Go dependency bloat.
   - **Decoupled Artifact Sync via SCP**: Automatically copies `docker/Caddyfile` and `scripts/deploy-staging.sh` directly from the runner to the VPS, eliminating git credential and clone requirements on the remote server.
   - **Authenticated Private GHCR Pulls**: Remotely authenticates VPS Docker to `ghcr.io` using runner's ephemeral `GITHUB_TOKEN`.
-  - **Hardened Deploy Script**: Updated `scripts/deploy-staging.sh` to prevent VPS RAM exhaustion from local build fallbacks and provide clear diagnostic instructions when `.env` is unconfigured.
+  - **Hardened Deploy Script & Graceful Pre-flight Gating**: Updated `scripts/deploy-staging.sh` to prevent VPS RAM exhaustion from local build fallbacks and provide clear diagnostic instructions when `.env` is unconfigured. Added graceful degradation to `deploy-staging.yml` so automated pushes to `main` remain green with a `::warning::` notice until secrets are configured, while manual dispatches retain fail-fast feedback.
   - **Documented**: Created [[ADR_009_REMAKE_CD_PIPELINE]] and synchronized [[STAGING_DEPLOYMENT_RUNBOOK]].
 
 - **End-to-End System Polish & Seamless Flow Verification Completed (100% Verified)**:

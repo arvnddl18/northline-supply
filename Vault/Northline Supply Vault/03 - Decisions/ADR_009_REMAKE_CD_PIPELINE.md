@@ -18,6 +18,7 @@ In accordance with Ponytail Principles (minimal code, zero bloat, highest reliab
 5. **Dynamic GHCR Authentication**: Pipe the runner's ephemeral `GITHUB_TOKEN` to `docker login ghcr.io -u $ACTOR --password-stdin` on the remote VPS before pulling the container image.
 6. **Robust Shell Defaults**: Use standard POSIX shell fallback expansions (`${CUSTOM_PORT:-22}`) in runner steps rather than GitHub Actions boolean operators in YAML parameters.
 7. **Safe Pull Resolution in Deploy Script**: Updated `scripts/deploy-staging.sh` to halt cleanly with clear instructions if image pull fails, avoiding RAM exhaustion from local build fallbacks on resource-constrained staging nodes.
+8. **Graceful Degradation on Unconfigured Secrets**: When triggered automatically via `workflow_run` (push to `main`), unconfigured VPS secrets emit an informative GitHub Actions `::warning::` and skip deployment cleanly with exit code 0 (`ready=false`), keeping `main` green and healthy while alerting developers on how to activate CD. When triggered manually via `workflow_dispatch`, it fails fast with `exit 1` to alert the operator.
 
 ## Status
 Accepted / Active
